@@ -11,10 +11,15 @@ import re
 
 from subprocess import call
 
+
+print("Running GCC")
+
 # transparently run gcc
 args = list(sys.argv)
 args[0] = 'gcc'
 call(args)
+
+print("Parsing for functions")
 
 # collect file list
 files = []
@@ -27,7 +32,7 @@ for a in sys.argv[1:]:
 
 	# check the extension
 	parts = os.path.splitext(a)
-	
+
 	if len(parts) < 2:
 		continue
 
@@ -39,7 +44,26 @@ for a in sys.argv[1:]:
 	if os.path.isfile(f):
 		files.append(f)
 
+print "Files:"
+for f in files:
+	print("\t%s" % f)
 
-print files
+
+
+
+
+
+
+re_identifier = r"([_a-zA-Z][_a-zA-Z0-9]*)"
+
+re_function_def = re_identifier + r"\s+" + re_identifier + r"\s*\(.*\)\s*\{"
 
 # each file gets turned into a .go (graph-object) file
+for f in files:
+	print "\nFile ================= [%s]" % f
+	with open(f, 'r') as source:
+		code = source.read()
+		r = re.compile(re_function_def, re.MULTILINE)
+		
+		for match in r.finditer(code):
+			print match.span()

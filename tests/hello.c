@@ -20,7 +20,12 @@ int foo ()
 
 int bar ()
 {
-	int x;
+	int test()
+	{
+		return 0;
+	}
+
+	int x = test();
 	S s;
 
 	x = GLOBAL;
