@@ -18,7 +18,8 @@ int foo ()
 	GLOBAL++;
 }
 
-int bar ()
+int bar (int *d,
+		 int a)
 {
 	int test()
 	{

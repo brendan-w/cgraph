@@ -56,7 +56,8 @@ for f in files:
 
 re_identifier = r"([_a-zA-Z][_a-zA-Z0-9]*)"
 
-re_function_def = re_identifier + r"\s+" + re_identifier + r"\s*\(.*\)\s*\{"
+#                 function name     lookahead for (...){
+re_function_def = re_identifier + r"(?=\s*\(([\s_a-zA-Z0-9*&,])*\)\s*\{)"
 
 # each file gets turned into a .go (graph-object) file
 for f in files:
@@ -66,4 +67,9 @@ for f in files:
 		r = re.compile(re_function_def, re.MULTILINE)
 		
 		for match in r.finditer(code):
-			print match.span()
+			pos = match.start()
+			name = match.group()
+
+			line = code[:pos].count('\n') + 1
+			print line
+
