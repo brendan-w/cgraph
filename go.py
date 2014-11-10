@@ -8,19 +8,19 @@ replace CC=gcc with this python file, and run as normal
 import os
 import sys
 import re
+import json
 
 from subprocess import call
 from pycparser import c_parser, c_ast, parse_file
 
-
-print("Running GCC")
+print("====================  Running GCC  =====================")
 
 # transparently run gcc
 args = list(sys.argv)
 args[0] = 'gcc'
 call(args)
 
-print("Parsing for functions")
+print("===============  Parsing for functions  ================")
 
 # collect file list
 files = []
@@ -45,25 +45,13 @@ for a in sys.argv[1:]:
 	if os.path.isfile(f):
 		files.append(f)
 
-print "Files:"
+
+
+print "All Files:"
 for f in files:
 	print("\t%s" % f)
 
 
-
-
-class Function():
-	def __init__(self, node):
-		# the def for this function
-		self.node = node
-		# other functions that this one calls
-		self.calls = []
-
-	def __str__(self):
-		out = "Def: %s: %d" % (self.node.decl.name, self.node.decl.coord.line)
-		for call in self.calls:
-			out += "\n\tCalls: %s: %d" % (call.name.name, call.coord.line)
-		return out
 
 
 
@@ -74,16 +62,34 @@ class Recurser():
 		self.stack = []
 		self.descend(ast)
 
+	def buildFunc(self, node):
+		return {
+			"name": node.decl.name,
+			"line": node.decl.coord.line,
+			"public": ('static' not in node.decl.storage),
+			"calls": [],
+		}
+
+	def buildCall(self, node):
+		return {
+			"name": node.name.name,
+			"line": node.coord.line,
+		}
+
 	def descend(self, node):
 		isDef  = (node.__class__.__name__ == "FuncDef")
 		isCall = (node.__class__.__name__ == "FuncCall")
 
 		if isDef:
-			func = Function(node)
+			func = self.buildFunc(node)
+
 			self.stack.append(func)
 			self.funcs.append(func)
+		
 		elif isCall and len(self.stack) > 0:
-			self.stack[-1].calls.append(node)
+			call = self.buildCall(node)
+
+			self.stack[-1]["calls"].append(call)
 
 		# recurse
 		for c_name, c in node.children():
@@ -105,5 +111,9 @@ for f in files:
 
 	r = Recurser(ast)
 
-	for func in r.funcs:
-		print str(func)
+	print "\t%d Functions" % len(r.funcs)
+
+	with open("%s.go"%f, "w") as out_file:
+		j = json.dumps(r.funcs, indent=4)
+		print j
+		#out_file.write(j)
