@@ -10,6 +10,7 @@ import sys
 import re
 
 from subprocess import call
+from pycparser import c_parser, c_ast, parse_file
 
 
 print("Running GCC")
@@ -53,23 +54,17 @@ for f in files:
 
 
 
+class FuncDefVisitor(c_ast.NodeVisitor):
+	def visit_FuncDef(self, node):
+		print('%s at %s' % (node.decl.name, node.decl.coord))
 
-re_identifier = r"([_a-zA-Z][_a-zA-Z0-9]*)"
-
-#                 function name     lookahead for (...){
-re_function_def = re_identifier + r"(?=\s*\(([\s_a-zA-Z0-9*&,])*\)\s*\{)"
 
 # each file gets turned into a .go (graph-object) file
 for f in files:
 	print "\nFile ================= [%s]" % f
-	with open(f, 'r') as source:
-		code = source.read()
-		r = re.compile(re_function_def, re.MULTILINE)
-		
-		for match in r.finditer(code):
-			pos = match.start()
-			name = match.group()
-
-			line = code[:pos].count('\n') + 1
-			print line
+	ast = parse_file(f, use_cpp=True, \
+						cpp_path='gcc', \
+						cpp_args=['-E', r'-I' '/home/brendan/cgraph/fake_libc_include/'])
+	v = FuncDefVisitor()
+	v.visit(ast)
 

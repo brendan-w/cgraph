@@ -18,13 +18,8 @@ int foo ()
 	GLOBAL++;
 }
 
-int bar (int *d,
-		 int a)
+int bar ()
 {
-	int test()
-	{
-		return 0;
-	}
 
 	int x = test();
 	S s;
@@ -35,6 +30,12 @@ int bar (int *d,
 
 int zoo ()
 {
+
+	if(1)
+	{
+
+	}
+
 	S s;
 
 	!GLOBAL;
