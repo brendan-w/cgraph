@@ -18,6 +18,15 @@ print("====================  Running GCC  =====================")
 # transparently run gcc
 args = list(sys.argv)
 args[0] = 'gcc'
+
+# command line option for preprocessor choice
+use_gcc_cpp = ('-nogcc' not in args)
+try:
+    args.remove('-nogcc')
+except ValueError:
+    pass
+
+# run gcc as the make file would have it
 call(args)
 
 print("===============  Parsing for functions  ================")
@@ -58,10 +67,11 @@ for f in files:
 class Recurser():
 
 	def __init__(self, ast):
-		self.funcs = []
-		self.stack = []
-		self.descend(ast)
+		self.funcs = [] # list of all function definitions in this tree
+		self.stack = [] # the function that the recurser is currently in (all call statements will be logged to top function)
+		self.descend(ast) # start!
 
+	# pull out relevant information and store in json friendly format
 	def buildFunc(self, node):
 		return {
 			"name": node.decl.name,
@@ -70,17 +80,20 @@ class Recurser():
 			"calls": [],
 		}
 
+	# pull out relevant information and store in json friendly format
 	def buildCall(self, node):
 		return {
 			"name": node.name.name,
 			"line": node.coord.line,
 		}
 
+	# the tree recurser
 	def descend(self, node):
 		isDef  = (node.__class__.__name__ == "FuncDef")
 		isCall = (node.__class__.__name__ == "FuncCall")
 
 		if isDef:
+			# if it a definition, build a new object for it, and push it on the stack
 			func = self.buildFunc(node)
 
 			self.stack.append(func)
@@ -89,6 +102,7 @@ class Recurser():
 		elif isCall and len(self.stack) > 0:
 			call = self.buildCall(node)
 
+			# log this call in the top function on the stack
 			self.stack[-1]["calls"].append(call)
 
 		# recurse
@@ -96,6 +110,7 @@ class Recurser():
 			self.descend(c)
 
 		if isDef:
+			# now that the recurse for loop has finished, we can pop the current location form the stack
 			self.stack.pop()
 
 
@@ -104,10 +119,14 @@ class Recurser():
 for f in files:
 	print "\nFile ================= [%s]" % f
 
-	# parse it! uses GCC as C-preprocessor fake libc includes provided by pycparser
-	ast = parse_file(f, use_cpp=True, \
-						cpp_path='gcc', \
-						cpp_args=['-E', '-I', '/home/brendan/cgraph/fake_libc_include/'])
+	# parse it using GCC for its C-preprocessor
+	# fake libc includes provided by pycparser
+	if use_gcc_cpp:
+		ast = parse_file(f, use_cpp=True, \
+							cpp_path='gcc', \
+							cpp_args=['-E', '-I', '/home/brendan/cgraph/fake_libc_include/'])
+	else:
+		ast = parse_file(f, use_cpp=False)
 
 	r = Recurser(ast)
 
@@ -115,5 +134,5 @@ for f in files:
 
 	with open("%s.go"%f, "w") as out_file:
 		j = json.dumps(r.funcs, indent=4)
-		print j
-		#out_file.write(j)
+		#print j
+		out_file.write(j)
