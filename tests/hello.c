@@ -2,6 +2,9 @@
 #include "header.h"
 
 //-------------start------------
+
+int foo();
+
 int GLOBAL;
 typedef struct { int x; } S;
 
@@ -18,10 +21,9 @@ int foo ()
 	GLOBAL++;
 }
 
-int bar ()
+static int bar ()
 {
-
-	int x = test();
+	int x;
 	S s;
 
 	x = GLOBAL;
