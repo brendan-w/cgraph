@@ -1,6 +1,9 @@
-/*
-** C implementation of a hash table ADT
-*/
+
+int asdf()
+{
+
+}
+
 typedef enum tagReturnCode {SUCCESS, FAIL} ReturnCode;
 typedef struct tagEntry
 {
@@ -30,19 +33,16 @@ ReturnCode HashCreate(Hash** hash, unsigned int table_size)
 unsigned int i;
 if (table_size < 1)
 return FAIL;
-//
-// Allocate space for the Hash
-//
+
+
 if (((*hash) = malloc(sizeof(**hash))) == NULL)
 return FAIL;
-//
-// Allocate space for the array of list heads
-//
+
+
 if (((*hash)->heads = malloc(table_size*sizeof(*((*hash)->heads)))) == NULL)
 return FAIL;
-//
-// Initialize Hash info
-//
+
+
 for (i = 0; i < table_size; ++i)
 {
 (*hash)->heads[i] = NULL;

@@ -1,0 +1,27 @@
+{
+  "name": "cgraph",
+  "version": "1.0.0",
+  "description": "",
+  "main": "parse.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "node ./src/parse.js",
+    "pretest": "jshint ./src",
+    "test": "echo \"Test Complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/brendanwhitfield/cgraph"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brendanwhitfield/cgraph/issues"
+  },
+  "homepage": "https://github.com/brendanwhitfield/cgraph",
+  "dependencies": {
+    "jshint": "^2.5.10"
+  }
+}

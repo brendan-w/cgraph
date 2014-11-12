@@ -1,47 +1,20 @@
 
 #include "header.h"
 
-//-------------start------------
 
-int foo();
-
-int GLOBAL;
-typedef struct { int x; } S;
 
 int main()
 {
+	int (*getFunc())(int, int);
+
+	int foo();
+	int x = foo();
+
 	int i = bazz();
-	return 0;
+	return x+i;
 }
 
-int foo ()
+int foo()
 {
-	S s;
-	s.x++;
-	GLOBAL++;
-}
-
-static int bar ()
-{
-	int x;
-	S s;
-
-	x = GLOBAL;
-	x = s.x;
-}
-
-int zoo ()
-{
-
-	if(1)
-	{
-
-	}
-
-	S s;
-
-	!GLOBAL;
-	GLOBAL = 12;
-	s.x = GLOBAL;
-	GLOBAL = s.x;
+	return 1;
 }
