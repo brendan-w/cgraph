@@ -1,20 +1,17 @@
 
 #include "header.h"
 
-
+int foo();
 
 int main()
 {
-	int (*getFunc())(int, int);
-
-	int foo();
 	int x = foo();
-
 	int i = bazz();
-	return x+i;
+	return 0;
 }
 
-int foo()
+int foo ()
 {
-	return 1;
+	return 32;
 }
+

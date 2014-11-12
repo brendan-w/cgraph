@@ -1,49 +1,98 @@
 
 var fs = require("fs");
-var c = fs.readFileSync("./tests/hash.c", "utf8");
+var c = fs.readFileSync("./tests/hello/hello.c").toString("utf8");
+
+
+//preprocessor
+
+c = c.replace(/\".*\"/, "\"\""); //remove strings
+//remove comments
+
+
+//rules
+var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
+var keywords = ["auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","int","long","register","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while"];
+var operators = ["+", "-", "/", "*", "<", ">", "=", "|", "&", "%", "!"];
+var type = {
+	"UNKNOWN":-1,
+
+	"IDENTIFIER":0,
+	"KEYWORD":1,
+	"SEMICOLON":2,
+
+	"OPEN_BRACKET":3,
+	"CLOSE_BRACKET":4,
+
+	"OPEN_PAREN":5,
+	"CLOSE_PAREN":6,
+
+	"OPERATOR":7,
+}
+
+
+
+
 
 //tokenize
 
-function Token(name, line)
+function Token(name, line, id)
 {
 	this.name = name;
 	this.line = line;
+	this.type = type.UNKNOWN;
+
+	if(id)
+	{
+		if(keywords.indexOf(this.name) >= 0)
+			this.type = type.KEYWORD;
+		else
+			this.type = type.IDENTIFIER;
+	}
+	else
+	{
+		switch(this.name)
+		{
+			case "(": this.type = type.OPEN_PAREN; break;
+			case ")": this.type = type.CLOSE_PAREN; break;
+			case "{": this.type = type.OPEN_BRACKET; break;
+			case "}": this.type = type.CLOSE_BRACKET; break;
+			case ";": this.type = type.CLOSE_PAREN; break;
+		}
+	}
 }
 
 var tokens = [];
 var lineCounter = 1;
 var buffer = "";
 
-//rules
-var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
-
-
+//Note: this mechanism really only works because the only tokens of relevance are:
+//	-parenthesis
+//	-brackets
+//	-semicolons
+//	-keywords/identifiers
 for(var i = 0; i < c.length; i++)
 {
 	var k = c.charAt(i);
 
 	if(k === '\n') lineCounter++;
 
-
-
 	if(buffer.length !== 0)
 	{
 		if(!identifier.test(buffer)) //the buffer does NOT hold an identifier
 		{
-			tokens.push(new Token(buffer, lineCounter));
+			tokens.push(new Token(buffer, lineCounter, false));
 			buffer = "";
 		}
 		else //the buffer DOES hold an identifier
 		{
 			if(!identifier.test(buffer + k)) //if the next char isn't part of the ident, dump token
 			{
-				tokens.push(new Token(buffer, lineCounter));
+				tokens.push(new Token(buffer, lineCounter, true));
 				buffer = "";
 			}
 		}
 	}
 	
-
 	if(!/\s/.test(k))
 	{
 		buffer += k;
@@ -51,32 +100,3 @@ for(var i = 0; i < c.length; i++)
 }
 
 console.log(tokens);
-
-
-
-
-//allows regex to be concatenated together
-//avoids some escaping madness, since regex literals don't have to be string escaped too
-// consider:    "\\("  vs   /\(/
-function r(re) { return re.source; }
-
-
-
-var function_decl_and_call = r(  /\s+/  ) + identifier + r(  /\s*\(/  );
-
-var accepted_prefixes = r(  /[+-\/\*=<>&\|!]+/  );
-
-
-function match(re, text)
-{
-	matches = [];
-	re = new RegExp(re);
-
-	var m = re.exec(text); 
-
-	while(m)
-		matches.push(m);
-		m = re.exec(text);
-
-	return matches;
-}
