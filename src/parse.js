@@ -12,25 +12,17 @@ c = c.replace(/\".*\"/, "\"\""); //remove strings
 //rules
 var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
 var keywords = ["auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","int","long","register","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while"];
-var operators = ["+", "-", "/", "*", "<", ">", "=", "|", "&", "%", "!"];
 var type = {
 	"UNKNOWN":-1,
-
 	"IDENTIFIER":0,
 	"KEYWORD":1,
 	"SEMICOLON":2,
-
 	"OPEN_BRACKET":3,
 	"CLOSE_BRACKET":4,
-
 	"OPEN_PAREN":5,
 	"CLOSE_PAREN":6,
-
 	"OPERATOR":7,
 }
-
-
-
 
 
 //tokenize
@@ -52,11 +44,11 @@ function Token(name, line, id)
 	{
 		switch(this.name)
 		{
-			case "(": this.type = type.OPEN_PAREN; break;
-			case ")": this.type = type.CLOSE_PAREN; break;
-			case "{": this.type = type.OPEN_BRACKET; break;
+			case "(": this.type = type.OPEN_PAREN;    break;
+			case ")": this.type = type.CLOSE_PAREN;   break;
+			case "{": this.type = type.OPEN_BRACKET;  break;
 			case "}": this.type = type.CLOSE_BRACKET; break;
-			case ";": this.type = type.CLOSE_PAREN; break;
+			case ";": this.type = type.SEMICOLON;     break;
 		}
 	}
 }
@@ -74,7 +66,6 @@ for(var i = 0; i < c.length; i++)
 {
 	var k = c.charAt(i);
 
-	if(k === '\n') lineCounter++;
 
 	if(buffer.length !== 0)
 	{
@@ -93,10 +84,38 @@ for(var i = 0; i < c.length; i++)
 		}
 	}
 	
+	if(k === '\n') lineCounter++;
 	if(!/\s/.test(k))
 	{
 		buffer += k;
 	}
 }
 
-console.log(tokens);
+//console.log(tokens);
+
+
+
+//chunker (split tokens by close_brackets and semicolons)
+
+var chunks = [];
+var current = [];
+
+for(var i = 0; i < tokens.length; i++)
+{
+	var token = tokens[i];
+	current.push(token);
+
+	if((token.type === type.OPEN_BRACKET) || (token.type === type.SEMICOLON))
+	{
+		chunks.push(current);
+		current = [];
+	}
+}
+
+console.log(chunks);
+
+
+
+
+//interpretter
+
