@@ -5,7 +5,9 @@ int foo();
 
 int main()
 {
-	int x = foo();
+	int zoo();
+	bar();
+	int x = foo(bar());
 	int i = bazz();
 	return 0;
 }

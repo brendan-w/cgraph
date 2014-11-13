@@ -6,8 +6,7 @@ var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
 //keywords by class
 var keywords_other = ["void","char","short","int","long","float","double","signed","unsigned","_Bool","_Complex","struct","union","const","restrict","volatile","sizeof","enum","inline","case","default","if","else","switch","while","do","for","goto","continue","break","return"];
 var keywords_storage = ["typedef","extern","static","auto","register"];
-
-var operators = ["=","<",">"];
+var operators_assign = ["=","<",">"];
 
 
 //token class
@@ -23,19 +22,26 @@ function Token(name, line, id)
 		if(keywords_other.indexOf(this.name) >= 0)
 			this.type = types.KEYWORD_OTHER;
 		else if(keywords_storage.indexOf(this.name) >= 0)
-			this.type = types.KEYWORD_STORAGE;			
+			this.type = types.KEYWORD_STORAGE;
 		else
 			this.type = types.IDENTIFIER;
 	}
 	else
 	{
-		switch(this.name)
+		if(operators_assign.indexOf(this.name) >= 0)
 		{
-			case "(": this.type = types.OPEN_PAREN;    break;
-			case ")": this.type = types.CLOSE_PAREN;   break;
-			case "{": this.type = types.OPEN_BRACKET;  break;
-			case "}": this.type = types.CLOSE_BRACKET; break;
-			case ";": this.type = types.SEMICOLON;     break;
+			this.type = types.OPERATOR_ASSIGN;
+		}
+		else
+		{
+			switch(this.name)
+			{
+				case "(": this.type = types.OPEN_PAREN;    break;
+				case ")": this.type = types.CLOSE_PAREN;   break;
+				case "{": this.type = types.OPEN_BRACKET;  break;
+				case "}": this.type = types.CLOSE_BRACKET; break;
+				case ";": this.type = types.SEMICOLON;     break;
+			}
 		}
 	}
 }

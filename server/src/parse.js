@@ -28,7 +28,6 @@ var fs = require("fs");
 var util = require("./util.js");
 var types         = util.types;
 var countParens   = util.countParens;
-var countBrackets = util.countBrackets;
 var matchParen    = util.matchParen;
 
 var preproc       = require("./preprocessor.js");
@@ -36,12 +35,11 @@ var tokenizer     = require("./tokenizer.js");
 var statementer   = require("./statementer.js");
 
 
-var c = fs.readFileSync("./tests/hash.c").toString("utf8");
+var c = fs.readFileSync("./tests/hello/hello.c").toString("utf8");
 
 c = preproc(c);
 var tokens = tokenizer(c);
 var statements = statementer(tokens);
-
 
 
 
@@ -74,10 +72,11 @@ function testFuncDef(statement, start)
 
 definitions = [];
 
-function func(name, line, storage)
+function func(token, name, line, storage)
 {
-	this.name = name;
-	this.line = line;
+	this.token = token;
+	this.name = token.name;
+	this.line = token.line;
 	this.storage = storage;
 }
 
@@ -106,7 +105,7 @@ for(var i = 0; i < statements.length; i++)
 				if(testFuncDef(statement, t))
 				{
 					//oh boy oh boy oh boy!!
-					var f = new func(token.name, token.line, storage);
+					var f = new func(token, storage);
 					definitions.push(f);
 				}
 			}
@@ -114,5 +113,90 @@ for(var i = 0; i < statements.length; i++)
 	}
 }
 
-console.log(definitions);
+//console.log(definitions);
 
+
+
+
+
+
+
+
+
+
+
+
+
+calls = [];
+
+function call(token)
+{
+	this.token = token;
+	this.name = token.name;
+	this.line = token.line;
+}
+
+function testFuncDecl(statement, start, parenLevel)
+{
+	if(statement[t].type === types.IDENTIFIER) //function name
+	{
+		if(statement[t+1].type === types.OPEN_PAREN) //open paren
+		{
+			//find matching paren
+			var close = matchParen(statement, t+1);
+
+			if(close !== -1) //close paren
+			{	
+				if(start === 0) //if its got nothing before it, it gauranteed to be a call (not a prototyp)
+				{
+					//ghostbusters: "weeee GOT ONE!!!"
+					return true;
+				}
+				else if(parenLevel > 0)
+				{
+					return true;
+				}
+				else
+				{
+					//look at previous tokens to see if there was an assignment
+					for(var p = 0; p < start; p++)
+					{
+						if(statement[p].type === types.OPERATOR_ASSIGN)
+							return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+//find function definitions
+for(var i = 0; i < statements.length; i++)
+{
+	var statement = statements[i];
+	var parenLevel = 0;
+
+	//minimum number of tokens needed to form function DECLARATION
+	// main ( ) ;
+	if(statement.length >= 3)
+	{
+		for(var t = 0; t < statement.length - 3; t++)
+		{
+			var token = statement[t];
+			parenLevel += countParens(token);
+
+			//test using this position as a starting point
+			if(testFuncDecl(statement, t, parenLevel))
+			{
+				//oh boy oh boy oh boy!!
+				var c = new call(token);
+				calls.push(c);
+			}
+		}
+	}
+}
+
+
+
+console.log(calls);

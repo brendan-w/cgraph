@@ -9,7 +9,7 @@ var types = {
 	"CLOSE_BRACKET":5,
 	"OPEN_PAREN":6,
 	"CLOSE_PAREN":7,
-	"OPERATOR":8,
+	"OPERATOR_ASSIGN":8,
 };
 
 //increments or decrements parenLevel
@@ -45,8 +45,6 @@ function matchParen(statement, open)
 		if(level === 0) return t;
 	}
 }
-
-
 
 
 module.exports.types         = types;
