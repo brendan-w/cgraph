@@ -59,7 +59,7 @@ for(var i = 0; i < tokens.length; i++)
 }
 
 
-//console.log(statements);
+// console.log(statements);
 
 
 
@@ -88,9 +88,13 @@ function testFuncDef(statement, start)
 		{
 			//find matching paren
 			var close = matchParen(statement, t+1);
+			
 			if(close !== -1) //close paren
 			{
-				console.log("---------->",token);
+				if(statement[close+1].type === tokenizer.types.OPEN_BRACKET)
+				{
+					console.log("---------->", statement[t]);
+				}
 			}
 		}
 	}
@@ -102,14 +106,15 @@ function testFuncDef(statement, start)
 for(var i = 0; i < statements.length; i++)
 {
 	var statement = statements[i];
-	console.log("========");
+	console.log(i, "========");
 
 	//minimum number of tokens needed to form function DEFINITION
 	// void main ( ) {
 	if(statement.length >= 5)
 	{
-		for(var t = 0; t < statement.length - 4; t++)
+		for(var t = 0; t < statement.length - 3; t++)
 		{
+			// console.log(statement[t]);
 			//test using this position as a starting point
 			var test = testFuncDef(statement, t);
 		}

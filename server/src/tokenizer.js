@@ -87,7 +87,6 @@ function run(c)
 		}
 	}
 
-	//console.log(tokens);
 	return tokens;
 }
 
