@@ -1,4 +1,32 @@
 
+/*
+
+	Welcome to the C "parser" written in Javascript
+
+	Please... I can explain...
+
+	If you're wondering why on Earth I wrote my own parser, I tried 3 other
+	parsers, and they each got ditched for one of the following reasons:
+
+		- didn't provide line numbers
+		- didn't handle linking correctly
+		- required running gcc (not a great idea for a server...)
+		- requires headers for all dependencies
+
+	That last one is the kicker. In order to make this dynamic, I can never
+	gaurantee that I will have all of the headers for random dependencies.
+	Because of that, I needed a parser that can find function definitions/calls
+	without knowing types. This is my attempt.
+
+	Finding definitions is easy, just look for the brackets.
+	Finding calls is hard, because you need to weed out the prototypes.
+
+*/
+
+
+
+
+
 var fs        = require("fs");
 var preproc   = require("./preprocessor.js");
 var tokenizer = require("./tokenizer.js");
@@ -91,8 +119,9 @@ function testFuncDef(statement, start)
 			
 			if(close !== -1) //close paren
 			{
-				if(statement[close+1].type === tokenizer.types.OPEN_BRACKET)
+				if(statement[close+1].type === tokenizer.types.OPEN_BRACKET) //open bracket
 				{
+					//ghostbusters: "weeee GOT ONE!!!"
 					console.log("---------->", statement[t]);
 				}
 			}
@@ -106,7 +135,7 @@ function testFuncDef(statement, start)
 for(var i = 0; i < statements.length; i++)
 {
 	var statement = statements[i];
-	console.log(i, "========");
+	// console.log(i, "========");
 
 	//minimum number of tokens needed to form function DEFINITION
 	// void main ( ) {
