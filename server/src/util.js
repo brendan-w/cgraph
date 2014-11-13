@@ -9,7 +9,7 @@ var types = {
 	"CLOSE_BRACKET":5,
 	"OPEN_PAREN":6,
 	"CLOSE_PAREN":7,
-	"OPERATOR_ASSIGN":8,
+	"OPERATORS_BEFORE_EXP":8,
 };
 
 //increments or decrements parenLevel
