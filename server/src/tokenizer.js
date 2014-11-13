@@ -1,4 +1,6 @@
 
+var types = require("./util.js").types;
+
 //rules
 var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
 //keywords by class
@@ -6,18 +8,7 @@ var keywords_other = ["void","char","short","int","long","float","double","signe
 var keywords_storage = ["typedef","extern","static","auto","register"];
 
 var operators = ["=","<",">"];
-var types = {
-	"UNKNOWN":-1,
-	"IDENTIFIER":0,
-	"KEYWORD_OTHER":1,
-	"KEYWORD_STORAGE":2,
-	"SEMICOLON":3,
-	"OPEN_BRACKET":4,
-	"CLOSE_BRACKET":5,
-	"OPEN_PAREN":6,
-	"CLOSE_PAREN":7,
-	"OPERATOR":8,
-};
+
 
 //token class
 function Token(name, line, id)
@@ -51,7 +42,7 @@ function Token(name, line, id)
 
 
 //tokenizer (splits the text into classified tokens)
-function run(c)
+module.exports = function(c)
 {
 
 
@@ -95,6 +86,3 @@ function run(c)
 
 	return tokens;
 }
-
-module.exports.run = run;
-module.exports.types = types;
