@@ -33,7 +33,7 @@ var detect_calls  = require("./detect_calls.js");
 
 
 //here we go
-var raw_c = fs.readFileSync("./tests/hello/hello.c").toString("utf8");
+var raw_c = fs.readFileSync("./tests/hash.c").toString("utf8");
 var c = preproc(raw_c);
 var tokens = tokenizer(c);
 var statements = statementer(tokens);

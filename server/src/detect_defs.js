@@ -5,7 +5,7 @@ var matchParen    = util.matchParen;
 
 
 
-function func(token, name, line, storage)
+function func(token, storage)
 {
 	this.token = token;
 	this.name = token.name;
