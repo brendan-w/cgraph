@@ -12,6 +12,7 @@ c = c.replace(/\".*\"/, "\"\""); //remove strings
 //rules
 var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
 var keywords = ["auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","int","long","register","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while"];
+var operators = ["=","<",">"];
 var type = {
 	"UNKNOWN":-1,
 	"IDENTIFIER":0,
@@ -22,10 +23,10 @@ var type = {
 	"OPEN_PAREN":5,
 	"CLOSE_PAREN":6,
 	"OPERATOR":7,
-}
+};
 
 
-//tokenize
+//tokenizer (splits the text into classified tokens)
 
 function Token(name, line, id)
 {
@@ -35,6 +36,7 @@ function Token(name, line, id)
 
 	if(id)
 	{
+		//search the keywords list for possible match
 		if(keywords.indexOf(this.name) >= 0)
 			this.type = type.KEYWORD;
 		else
@@ -95,27 +97,63 @@ for(var i = 0; i < c.length; i++)
 
 
 
-//chunker (split tokens by close_brackets and semicolons)
+//chunker (split tokens into statements by close_brackets and semicolons)
 
-var chunks = [];
+var statements = [];
 var current = [];
+var parenLevel = 0; //prevents semicolons from chunk while in for(;;) loops
+
+//increments or decrements parenLevel
+function manageParens(t)
+{
+	if(t.type === type.OPEN_PAREN)
+		parenLevel++;
+	else if(t.type === type.CLOSE_PAREN)
+		parenLevel--;
+}
+
+function push()
+{
+	statements.push(current);
+	current = [];
+}
 
 for(var i = 0; i < tokens.length; i++)
 {
 	var token = tokens[i];
 	current.push(token);
 
-	if((token.type === type.OPEN_BRACKET) || (token.type === type.SEMICOLON))
-	{
-		chunks.push(current);
-		current = [];
-	}
+	manageParens(token);
+
+	//decide whether the current token string is a statement chunk
+	if(token.type === type.OPEN_BRACKET)
+		push();
+	else if(token.type === type.CLOSE_BRACKET) //end brackets get there own statements
+		push();
+	else if((parenLevel === 0) && (token.type === type.SEMICOLON))
+		push();
 }
 
-console.log(chunks);
+//console.log(statements);
 
 
 
 
-//interpretter
+//interpretter (finds function definitions)
 
+
+for(var i = 0; i < statements.length; i++)
+{
+	var statement = statements[i];
+	
+	parenLevel = 0;
+
+	console.log("========");
+
+	for(var t = 0; t < statement.length; t++)
+	{
+		var token = statement[t];
+		manageParens(token);
+		console.log(parenLevel, token);
+	}
+}
