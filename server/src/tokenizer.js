@@ -1,18 +1,22 @@
 
 //rules
 var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
-var keywords = ["auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","int","long","register","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while"];
+//keywords by class
+var keywords_other = ["void","char","short","int","long","float","double","signed","unsigned","_Bool","_Complex","struct","union","const","restrict","volatile","sizeof","enum","inline","case","default","if","else","switch","while","do","for","goto","continue","break","return"];
+var keywords_storage = ["typedef","extern","static","auto","register"];
+
 var operators = ["=","<",">"];
 var types = {
 	"UNKNOWN":-1,
 	"IDENTIFIER":0,
-	"KEYWORD":1,
-	"SEMICOLON":2,
-	"OPEN_BRACKET":3,
-	"CLOSE_BRACKET":4,
-	"OPEN_PAREN":5,
-	"CLOSE_PAREN":6,
-	"OPERATOR":7,
+	"KEYWORD_OTHER":1,
+	"KEYWORD_STORAGE":2,
+	"SEMICOLON":3,
+	"OPEN_BRACKET":4,
+	"CLOSE_BRACKET":5,
+	"OPEN_PAREN":6,
+	"CLOSE_PAREN":7,
+	"OPERATOR":8,
 };
 
 //token class
@@ -25,8 +29,10 @@ function Token(name, line, id)
 	if(id)
 	{
 		//search the keywords list for possible match
-		if(keywords.indexOf(this.name) >= 0)
-			this.type = types.KEYWORD;
+		if(keywords_other.indexOf(this.name) >= 0)
+			this.type = types.KEYWORD_OTHER;
+		else if(keywords_storage.indexOf(this.name) >= 0)
+			this.type = types.KEYWORD_STORAGE;			
 		else
 			this.type = types.IDENTIFIER;
 	}

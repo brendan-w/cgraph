@@ -10,7 +10,7 @@ int main()
 	return 0;
 }
 
-int foo ()
+static int foo ()
 {
 	for(int i = 0; i < 1; i++)
 	{

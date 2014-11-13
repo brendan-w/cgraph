@@ -15,7 +15,7 @@
 
 	That last one is the kicker. In order to make this dynamic, I can never
 	gaurantee that I will have all of the headers for random dependencies.
-	Because of that, I needed a parser that can find function definitions/calls
+	Because of that, I needed a parser that could find function definitions/calls
 	without knowing types. This is my attempt.
 
 	Finding definitions is easy, just look for the brackets.
@@ -23,26 +23,16 @@
 
 */
 
-
-
-
-
 var fs        = require("fs");
 var preproc   = require("./preprocessor.js");
 var tokenizer = require("./tokenizer.js");
 
 
-
-
-
 var c = fs.readFileSync("./tests/hello/hello.c").toString("utf8");
 
+c = preproc(c);
 
-
-
-
-var tokens = tokenizer.run(preproc(c));
-
+var tokens = tokenizer.run(c);
 
 
 
@@ -116,36 +106,63 @@ function testFuncDef(statement, start)
 		{
 			//find matching paren
 			var close = matchParen(statement, t+1);
-			
+
 			if(close !== -1) //close paren
 			{
 				if(statement[close+1].type === tokenizer.types.OPEN_BRACKET) //open bracket
 				{
 					//ghostbusters: "weeee GOT ONE!!!"
-					console.log("---------->", statement[t]);
+					//console.log("---------->", statement[t]);
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+
+definitions = [];
+
+function func(name, line, storage)
+{
+	this.name = name;
+	this.line = line;
+	this.storage = storage;
+}
+
+//find function definitions
+for(var i = 0; i < statements.length; i++)
+{
+	var statement = statements[i];
+
+	//minimum number of tokens needed to form function DEFINITION
+	// void main ( ) {
+	if(statement.length >= 5)
+	{
+		var storage = "extern"; //all functions are extern by default
+		for(var t = 0; t < statement.length - 3; t++)
+		{
+			var token = statement[t];
+
+			//record the last occurence of storage modifiers
+			if(token.type === tokenizer.types.KEYWORD_STORAGE)
+			{
+				storage = token.name;
+			}
+			else
+			{
+				//test using this position as a starting point
+				if(testFuncDef(statement, t))
+				{
+					//oh boy oh boy oh boy!!
+					var f = new func(token.name, token.line, storage);
+					definitions.push(f);
 				}
 			}
 		}
 	}
 }
 
+console.log(definitions);
 
-
-//find function definitions
-for(var i = 0; i < statements.length; i++)
-{
-	var statement = statements[i];
-	// console.log(i, "========");
-
-	//minimum number of tokens needed to form function DEFINITION
-	// void main ( ) {
-	if(statement.length >= 5)
-	{
-		for(var t = 0; t < statement.length - 3; t++)
-		{
-			// console.log(statement[t]);
-			//test using this position as a starting point
-			var test = testFuncDef(statement, t);
-		}
-	}
-}
