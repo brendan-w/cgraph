@@ -1,37 +1,41 @@
 [
     {
         "name": "hash_func",
-        "line": 20,
+        "line": 18,
         "public": false,
         "calls": []
     },
     {
         "name": "HashCreate",
-        "line": 28,
+        "line": 26,
         "public": true,
         "calls": [
             {
                 "name": "malloc",
-                "line": 35
+                "line": 33
             },
             {
                 "name": "malloc",
-                "line": 39
+                "line": 37
             }
         ]
     },
     {
         "name": "HashInsert",
-        "line": 50,
+        "line": 48,
         "public": true,
         "calls": [
             {
                 "name": "hash_func",
-                "line": 52
+                "line": 50
             },
             {
                 "name": "HashRemove",
-                "line": 54
+                "line": 52
+            },
+            {
+                "name": "malloc",
+                "line": 53
             },
             {
                 "name": "malloc",
@@ -39,61 +43,65 @@
             },
             {
                 "name": "malloc",
+                "line": 56
+            },
+            {
+                "name": "strlen",
+                "line": 56
+            },
+            {
+                "name": "malloc",
                 "line": 57
             },
             {
-                "name": "malloc",
-                "line": 58
-            },
-            {
                 "name": "strlen",
-                "line": 58
-            },
-            {
-                "name": "malloc",
-                "line": 59
-            },
-            {
-                "name": "strlen",
-                "line": 59
+                "line": 57
             },
             {
                 "name": "strcpy",
-                "line": 60
+                "line": 58
             },
             {
                 "name": "strcpy",
-                "line": 61
+                "line": 59
             }
         ]
     },
     {
         "name": "HashFind",
-        "line": 65,
+        "line": 63,
         "public": true,
         "calls": [
             {
                 "name": "hash_func",
-                "line": 67
+                "line": 65
             },
             {
                 "name": "strcmp",
-                "line": 71
+                "line": 69
             }
         ]
     },
     {
         "name": "HashRemove",
-        "line": 77,
+        "line": 75,
         "public": true,
         "calls": [
             {
                 "name": "hash_func",
-                "line": 79
+                "line": 77
             },
             {
                 "name": "strcmp",
-                "line": 84
+                "line": 82
+            },
+            {
+                "name": "free",
+                "line": 88
+            },
+            {
+                "name": "free",
+                "line": 89
             },
             {
                 "name": "free",
@@ -102,40 +110,36 @@
             {
                 "name": "free",
                 "line": 91
-            },
-            {
-                "name": "free",
-                "line": 92
-            },
-            {
-                "name": "free",
-                "line": 93
             }
         ]
     },
     {
         "name": "HashPrint",
-        "line": 102,
+        "line": 100,
         "public": true,
         "calls": [
             {
                 "name": "PrintFunc",
-                "line": 112
+                "line": 110
             }
         ]
     },
     {
         "name": "HashDestroy",
-        "line": 117,
+        "line": 115,
         "public": true,
         "calls": [
             {
                 "name": "free",
-                "line": 128
+                "line": 126
             },
             {
                 "name": "free",
-                "line": 129
+                "line": 127
+            },
+            {
+                "name": "free",
+                "line": 128
             },
             {
                 "name": "free",
@@ -143,15 +147,11 @@
             },
             {
                 "name": "free",
-                "line": 132
+                "line": 133
             },
             {
                 "name": "free",
                 "line": 135
-            },
-            {
-                "name": "free",
-                "line": 137
             }
         ]
     }

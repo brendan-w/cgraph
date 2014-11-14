@@ -25,22 +25,23 @@ function callInFunc(call, func)
 
 module.exports = function(definitions, calls) {
 
-	//create shallow clone of the array (so we can pop elements without affecting the parent)
-	calls = calls.slice();
-
 	//list of functions, each with their own list of calls
 	var outputJSON = [];
 
 	for(var f = 0; f < definitions.length; f++)
 	{
+		var definition = definitions[f];
 		//construct the output JSON for this function
-		var funcJSON = funcToJSON(definitions[f]);
+		var funcJSON = funcToJSON(definition);
 
-		//for each call in this function, add it to the calls array
-		while((calls.length > 0) && callInFunc(calls[0], definitions[f]))
+		//search for calls in this function, and add them to the calls array
+		for(var c = 0; c < calls.length; c++)
 		{
-			var callJSON = callToJSON(calls.shift());
-			funcJSON.calls.push(callJSON);
+			if(callInFunc(calls[c], definition))
+			{
+				//jsonify and add the call to this function's array
+				funcJSON.calls.push(callToJSON(calls[c]));
+			}
 		}
 
 		outputJSON.push(funcJSON);

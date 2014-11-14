@@ -37,18 +37,14 @@ var muxer         = require("./muxer.js");
 
 function parseFile(filename)
 {
-	var raw_c = fs.readFileSync(filename).toString("utf8");
-	var c = preproc(raw_c);
-	var tokens = tokenizer(c);
-	var statements = statementer(tokens);
-
+	var raw_c       = fs.readFileSync(filename).toString("utf8");
+	var c           = preproc(raw_c);
+	var tokens      = tokenizer(c);
+	var statements  = statementer(tokens);
 	var definitions = detect_defs(statements);
-	var calls = detect_calls(statements);	
+	var calls       = detect_calls(statements);
+	var output      = muxer(definitions, calls);
 
-	var output = muxer(definitions, calls);
-
-	//done
-	console.log("output ========");
 	console.log(output);
 
 	fs.writeFileSync(filename + ".go", output);
