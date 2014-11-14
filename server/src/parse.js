@@ -48,12 +48,10 @@ function parseFile(filename)
 	var output = muxer(definitions, calls);
 
 	//done
-	console.log("defs ==========");
-	console.log(definitions);
-	console.log("calls =========");
-	console.log(calls);
 	console.log("output ========");
 	console.log(output);
+
+	fs.writeFileSync(filename + ".go", output);
 }
 
-parseFile("./tests/hello/hello.c");
+parseFile("./tests/hash.c");

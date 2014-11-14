@@ -1,8 +1,5 @@
 
-int asdf()
-{
 
-}
 
 typedef enum tagReturnCode {SUCCESS, FAIL} ReturnCode;
 typedef struct tagEntry

@@ -55,9 +55,9 @@ function matchBracket(statements, open)
 	for(var s = open+1; s < statements.length; s++)
 	{
 		var statement = statements[s];
-		if(statement.length === 1) //close brackets are their own statements
+		for(var t = 0; t < statement.length; t++)
 		{
-			var token = statement[0];
+			var token = statement[t];
 			level += countBrackets(token);
 			if(level === 0) return token;
 		}
