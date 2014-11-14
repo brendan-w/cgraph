@@ -9,7 +9,6 @@ var types = {
 	"CLOSE_BRACKET":5,
 	"OPEN_PAREN":6,
 	"CLOSE_PAREN":7,
-	"OPERATORS_BEFORE_EXP":8,
 };
 
 //increments or decrements parenLevel
@@ -64,9 +63,12 @@ function matchBracket(statements, open)
 	}
 }
 
+function inArray(v, a) { return a.indexOf(v) >= 0; }
+
 
 module.exports.types         = types;
 module.exports.countParens   = countParens;
 module.exports.countBrackets = countBrackets;
 module.exports.matchParen    = matchParen;
 module.exports.matchBracket  = matchBracket;
+module.exports.inArray       = inArray;

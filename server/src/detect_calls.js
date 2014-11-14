@@ -3,6 +3,9 @@ var util = require("./util.js");
 var types         = util.types;
 var countParens   = util.countParens;
 var matchParen    = util.matchParen;
+var inArray       = util.inArray;
+
+var operators_before_exp = ["=","<",">","."];
 
 
 
@@ -39,13 +42,11 @@ function testFuncDecl(statement, start, parenLevel)
 					//as opposed to a prototype
 					for(var p = 0; p < start; p++)
 					{
-						if(statement[p].type === types.OPERATORS_BEFORE_EXP)
+						var prev = statement[p];
+						if((prev.type === types.UNKNOWN) && inArray(prev.name, operators_before_exp))
 							return true;
-						else if((statement[p].type === types.KEYWORD_OTHER) &&
-								(statement[p].name === "return"))
-						{
+						else if((prev.type === types.KEYWORD_OTHER) && (prev.name === "return"))
 							return true;
-						}
 					}
 				}
 			}

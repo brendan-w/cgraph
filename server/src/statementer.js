@@ -1,7 +1,8 @@
 
-var types         = require("./util.js").types;
-var countParens   = require("./util.js").countParens;
-var countBrackets = require("./util.js").countBrackets;
+var util          = require("./util.js")
+var types         = util.types;
+var countParens   = util.countParens;
+var countBrackets = util.countBrackets;
 
 
 module.exports = function(tokens) {
