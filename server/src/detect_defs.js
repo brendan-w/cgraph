@@ -1,16 +1,18 @@
 
 var util = require("./util.js");
-var types         = util.types;
-var matchParen    = util.matchParen;
+var types        = util.types;
+var matchParen   = util.matchParen;
+var matchBracket = util.matchBracket;
 
 
 
-function func(token, storage)
+function func(token, storage, endToken)
 {
 	this.token = token;
 	this.name = token.name;
 	this.line = token.line;
 	this.storage = storage;
+	this.endToken = endToken;
 }
 
 
@@ -65,8 +67,9 @@ module.exports = function(statements) {
 					//test using this position as a starting point
 					if(testFuncDef(statement, t))
 					{
-						//oh boy oh boy oh boy!!
-						var f = new func(token, storage);
+						//find matching bracket (brackets are their own statements in this parser)
+						var endToken = matchBracket(statements, i);
+						var f = new func(token, storage, endToken);
 						definitions.push(f);
 					}
 				}

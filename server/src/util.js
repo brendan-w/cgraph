@@ -46,8 +46,27 @@ function matchParen(statement, open)
 	}
 }
 
+//returns the token of the matching close bracket for an opening statement
+function matchBracket(statements, open)
+{
+	var level = 1;
+
+	//loop until the paren level returns to zero
+	for(var s = open+1; s < statements.length; s++)
+	{
+		var statement = statements[s];
+		if(statement.length === 1) //close brackets are their own statements
+		{
+			var token = statement[0];
+			level += countBrackets(token);
+			if(level === 0) return token;
+		}
+	}
+}
+
 
 module.exports.types         = types;
 module.exports.countParens   = countParens;
 module.exports.countBrackets = countBrackets;
 module.exports.matchParen    = matchParen;
+module.exports.matchBracket  = matchBracket;

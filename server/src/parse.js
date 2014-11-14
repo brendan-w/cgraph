@@ -30,19 +30,30 @@ var tokenizer     = require("./tokenizer.js");
 var statementer   = require("./statementer.js");
 var detect_defs   = require("./detect_defs.js");
 var detect_calls  = require("./detect_calls.js");
+var muxer         = require("./muxer.js");
 
 
 //here we go
-var raw_c = fs.readFileSync("./tests/hello/hello.c").toString("utf8");
-var c = preproc(raw_c);
-var tokens = tokenizer(c);
-var statements = statementer(tokens);
-var definitions = detect_defs(statements);
-var calls = detect_calls(statements);
 
-//done
-console.log(tokens);
-console.log("defs ========");
-console.log(definitions);
-console.log("calls =======");
-console.log(calls);
+function parseFile(filename)
+{
+	var raw_c = fs.readFileSync(filename).toString("utf8");
+	var c = preproc(raw_c);
+	var tokens = tokenizer(c);
+	var statements = statementer(tokens);
+
+	var definitions = detect_defs(statements);
+	var calls = detect_calls(statements);	
+
+	var output = muxer(definitions, calls);
+
+	//done
+	console.log("defs ==========");
+	console.log(definitions);
+	console.log("calls =========");
+	console.log(calls);
+	console.log("output ========");
+	console.log(output);
+}
+
+parseFile("./tests/hello/hello.c");
