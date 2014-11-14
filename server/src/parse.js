@@ -41,6 +41,7 @@ var definitions = detect_defs(statements);
 var calls = detect_calls(statements);
 
 //done
+console.log(tokens);
 console.log("defs ========");
 console.log(definitions);
 console.log("calls =======");

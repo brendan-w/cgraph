@@ -3,7 +3,7 @@
 
 int foo();
 
-int main()
+int main() //adsf
 {
 	int zoo();
 	bar();

@@ -5,14 +5,9 @@
 */
 
 //preprocessor
-function preproc(c)
-{
-
+module.exports = function(c) {
 	c = c.replace(/\".*\"/, "\"\""); //remove strings
-	//remove comments
-
+	c = c.replace(/\/\/.*$/m, ""); //remove single line comments
 
 	return c;
-}
-
-module.exports = preproc;
+};

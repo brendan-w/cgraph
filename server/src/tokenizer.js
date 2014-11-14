@@ -10,14 +10,15 @@ var operators_before_exp = ["=","<",">","."];
 
 
 //token class
-function Token(name, line, id, is_identifier)
+function Token(name, line, id)
 {
 	this.name = name;
 	this.line = line;
 	this.id = id;
 	this.type = types.UNKNOWN;
 
-	if(is_identifier)
+	//classify this token
+	if(identifier.test(this.name))
 	{
 		//search the keywords list for possible match
 		if(keywords_other.indexOf(this.name) >= 0)
@@ -57,6 +58,12 @@ module.exports = function(c)
 	var lineCounter = 1;
 	var buffer = "";
 
+	function push()
+	{
+		tokens.push(new Token(buffer, lineCounter, tokens.length));
+		buffer = "";
+	}
+
 	//Note: this mechanism really only works because the only tokens of relevance are:
 	//	-parenthesis
 	//	-brackets
@@ -66,30 +73,27 @@ module.exports = function(c)
 	{
 		var k = c.charAt(i);
 
-
 		if(buffer.length !== 0)
 		{
 			if(!identifier.test(buffer)) //the buffer does NOT hold an identifier
 			{
-				tokens.push(new Token(buffer, lineCounter, tokens.length, false));
-				buffer = "";
+				push();
 			}
 			else //the buffer DOES hold an identifier
 			{
 				if(!identifier.test(buffer + k)) //if the next char isn't part of the ident, dump token
-				{
-					tokens.push(new Token(buffer, lineCounter, tokens.length, true));
-					buffer = "";
-				}
+					push()
 			}
 		}
 		
+		//advance
 		if(k === '\n') lineCounter++;
-		if(!/\s/.test(k))
-		{
-			buffer += k;
-		}
+		if(!/\s/.test(k)) buffer += k;
 	}
+
+	//push whatever's left
+	if(buffer.length !== 0)
+		push()
 
 	return tokens;
 }
