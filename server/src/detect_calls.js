@@ -27,7 +27,6 @@ function testFuncDecl(statement, start, parenLevel)
 			{	
 				if(start === 0) //if its got nothing before it, it gauranteed to be a call (not a prototyp)
 				{
-					//ghostbusters: "weeee GOT ONE!!!"
 					return true;
 				}
 				else if(parenLevel > 0) //if it's inside parens, it can't be a prototype, it must be a call
@@ -37,10 +36,16 @@ function testFuncDecl(statement, start, parenLevel)
 				else
 				{
 					//look at previous tokens to see if there were tokens that indicate expression or function call
+					//as opposed to a prototype
 					for(var p = 0; p < start; p++)
 					{
 						if(statement[p].type === types.OPERATORS_BEFORE_EXP)
 							return true;
+						else if((statement[p].type === types.KEYWORD_OTHER) &&
+								(statement[p].name === "return"))
+						{
+							return true;
+						}
 					}
 				}
 			}

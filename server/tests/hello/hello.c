@@ -9,7 +9,7 @@ int main()
 	bar();
 	int x = foo(bar());
 	int i = bazz();
-	return 0;
+	return zoo();
 }
 
 static int foo ()

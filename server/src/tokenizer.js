@@ -6,7 +6,7 @@ var identifier = /^([a-zA-Z_$][0-9a-zA-Z_$]*)$/;
 //keywords by class
 var keywords_other = ["void","char","short","int","long","float","double","signed","unsigned","_Bool","_Complex","struct","union","const","restrict","volatile","sizeof","enum","inline","case","default","if","else","switch","while","do","for","goto","continue","break","return"];
 var keywords_storage = ["typedef","extern","static","auto","register"];
-var operators_before_exp = ["=","<",">", "."];
+var operators_before_exp = ["=","<",">","."];
 
 
 //token class
