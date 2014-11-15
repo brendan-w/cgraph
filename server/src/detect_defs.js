@@ -6,13 +6,12 @@ var matchBracket = util.matchBracket;
 
 
 
-function func(token, storage, endToken)
+function Func(token, storage, endToken)
 {
 	this.token = token;
-	this.name = token.name;
-	this.line = token.line;
 	this.storage = storage;
 	this.endToken = endToken;
+	this.calls = []; //filled in loadCalls.js
 }
 
 
@@ -44,15 +43,15 @@ module.exports = function(statements) {
 	var definitions = [];
 
 	//find function definitions
-	for(var i = 0; i < statements.length; i++)
+	for(var s = 0; s < statements.length; s++)
 	{
-		var statement = statements[i];
+		var statement = statements[s];
 
 		//minimum number of tokens needed to form function DEFINITION
 		// void main ( ) {
 		if(statement.length >= 5)
 		{
-			var storage = "extern"; //all functions are extern by default
+			var storage = null; //all functions are extern by default
 			for(var t = 0; t < statement.length - 3; t++)
 			{
 				var token = statement[t];
@@ -60,7 +59,7 @@ module.exports = function(statements) {
 				//record the last occurence of storage modifiers
 				if(token.type === types.KEYWORD_STORAGE)
 				{
-					storage = token.name;
+					storage = token;
 				}
 				else
 				{
@@ -68,8 +67,8 @@ module.exports = function(statements) {
 					if(testFuncDef(statement, t))
 					{
 						//find matching bracket (brackets are their own statements in this parser)
-						var endToken = matchBracket(statements, i);
-						var f = new func(token, storage, endToken);
+						var endToken = matchBracket(statements, s);
+						var f = new Func(token, storage, endToken);
 						definitions.push(f);
 					}
 				}

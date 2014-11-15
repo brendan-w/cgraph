@@ -9,11 +9,9 @@ var operators_before_exp = ["=","<",">","."];
 
 
 
-function call(token)
+function Call(token)
 {
 	this.token = token;
-	this.name = token.name;
-	this.line = token.line;
 }
 
 //test for a function call starting at the given token index
@@ -78,7 +76,7 @@ module.exports = function(statements) {
 				if(testFuncDecl(statement, t, parenLevel))
 				{
 					//oh boy oh boy oh boy!!
-					var c = new call(token);
+					var c = new Call(token);
 					calls.push(c);
 				}
 			}

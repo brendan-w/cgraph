@@ -25,12 +25,12 @@
 
 var fs = require("fs");
 
-var preproc       = require("./preprocessor.js");
-var tokenizer     = require("./tokenizer.js");
-var statementer   = require("./statementer.js");
-var detect_defs   = require("./detect_defs.js");
-var detect_calls  = require("./detect_calls.js");
-var muxer         = require("./muxer.js");
+var preproc      = require("./preprocessor.js");
+var tokenizer    = require("./tokenizer.js");
+var statementer  = require("./statementer.js");
+var detect_defs  = require("./detect_defs.js");
+var detect_calls = require("./detect_calls.js");
+var loadCalls    = require("./loadCalls.js");
 
 
 //here we go
@@ -43,13 +43,13 @@ function parseFile(filename)
 	var statements  = statementer(tokens); //returns array of statements (which are arrays of 'token' objects)
 	var definitions = detect_defs(statements); //returns array of 'func' objects
 	var calls       = detect_calls(statements); //returns array of 'call' objects
-	var output      = muxer(definitions, calls); //returns string of json, matching each call to a function definition
+	var output      = loadCalls(definitions, calls); //returns array of 'func' objects, matched with the functions they call
 
 	console.log(output);
 
 	var outfile = filename + ".go";
-	fs.writeFileSync(outfile, output);
-	return outfile;
+	//fs.writeFileSync(outfile, output);
+	return output;
 }
 
 parseFile("./tests/hash.c");
