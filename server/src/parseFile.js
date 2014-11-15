@@ -1,22 +1,39 @@
 
 /*
+	This function parses a single C file into a function call map.
+	The return data should look something like this:
 
-	Welcome to the C "parser" written in Javascript
+	{
+		//file that this function map represents
+		file: "./tests/hello/hello.c",
 
-	Please... I can explain...
+		//main list of function definitions in the file
+		functions: [
 
-	If you're wondering why on Earth I wrote my own parser, I tried 3 other
-	parsers, and they each got ditched for one of the following reasons:
+			//each function definition gets an object
+			{
+				//identifier token for this function
+				token: { name: 'main', line: 6, id: 6, type: 0 },
 
-		- didn't provide line numbers
-		- didn't handle linking correctly
-		- required running gcc (not a great idea for a server...)
-		- requires headers for all dependencies
+				//storage modifier token ('extern' if null)
+				storage: null,
 
-	That last one is the kicker. In order to make this dynamic, I can never
-	gaurantee that I will have all of the headers for random dependencies.
-	Because of that, I needed a parser that could find function definitions/calls
-	without knowing types. This is my attempt.
+				//end bracket token for this function
+				endToken: { name: '}', line: 13, id: 41, type: 5 },
+
+				//list of calls this function makes
+				calls: [
+					//each call is an object with the identifier token with the function name
+					{ token: { name: 'bar',  line: 9,  id: 15, type: 0 } },
+					{ token: { name: 'foo',  line: 10, id: 22, type: 0 } },
+					{ token: { name: 'bar',  line: 10, id: 24, type: 0 } },
+					{ token: { name: 'bazz', line: 11, id: 32, type: 0 } },
+					{ token: { name: 'zoo',  line: 12, id: 37, type: 0 } }
+				]
+			},
+			etc...
+		]
+	}
 
 	Finding definitions is easy, just look for the brackets.
 	Finding calls is hard, because you need to weed out the prototypes.
@@ -33,8 +50,6 @@ var detect_calls = require("./detect_calls.js");
 var loadCalls    = require("./loadCalls.js");
 
 
-//here we go
-
 function parseFile(filename)
 {
 	var raw_c       = fs.readFileSync(filename).toString("utf8");
@@ -43,13 +58,14 @@ function parseFile(filename)
 	var statements  = statementer(tokens); //returns array of statements (which are arrays of 'token' objects)
 	var definitions = detect_defs(statements); //returns array of 'func' objects
 	var calls       = detect_calls(statements); //returns array of 'call' objects
-	var output      = loadCalls(definitions, calls); //returns array of 'func' objects, matched with the functions they call
+	var map         = loadCalls(definitions, calls); //returns array of 'func' objects, matched with the functions they call
 
-	console.log(output);
+	var output = {
+		"file": filename,
+		"functions": map
+	};
 
-	var outfile = filename + ".go";
-	//fs.writeFileSync(outfile, output);
 	return output;
 }
 
-parseFile("./tests/hash.c");
+module.exports = parseFile;

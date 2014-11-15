@@ -1,5 +1,5 @@
 
-var util          = require("./util.js")
+var util          = require("./util.js");
 var types         = util.types;
 var countParens   = util.countParens;
 var countBrackets = util.countBrackets;
@@ -37,7 +37,5 @@ module.exports = function(tokens) {
 			push();
 	}
 
-
-	// console.log(statements);
-	return statements
+	return statements;
 };

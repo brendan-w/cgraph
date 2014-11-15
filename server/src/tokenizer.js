@@ -78,7 +78,7 @@ module.exports = function(c)
 			else //the buffer DOES hold an identifier
 			{
 				if(!identifier.test(buffer + k)) //if the next char isn't part of the ident, dump token
-					push()
+					push();
 			}
 		}
 		
@@ -89,7 +89,7 @@ module.exports = function(c)
 
 	//push whatever's left
 	if(buffer.length !== 0)
-		push()
+		push();
 
 	return tokens;
-}
+};

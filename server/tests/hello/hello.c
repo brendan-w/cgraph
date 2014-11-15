@@ -3,21 +3,14 @@
 
 int foo();
 
-int main() //adsf
+int main()
 {
-	int zoo();
-	bar();
-	int x = foo(bar());
 	int i = bazz();
-	return zoo();
+	return foo();
 }
 
-static int foo ()
+static int foo()
 {
-	for(int i = 0; i < 1; i++)
-	{
-		
-	}
-	return 32;
+	return 0;
 }
 

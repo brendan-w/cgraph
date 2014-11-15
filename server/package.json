@@ -2,12 +2,12 @@
   "name": "cgraph",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/parseFile.js",
+  "main": "./src/index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "start": "node ./src/parseFile.js",
+    "start": "node ./src/index.js",
     "pretest": "jshint ./src",
     "test": "echo \"Test Complete\""
   },
