@@ -38,16 +38,18 @@ var muxer         = require("./muxer.js");
 function parseFile(filename)
 {
 	var raw_c       = fs.readFileSync(filename).toString("utf8");
-	var c           = preproc(raw_c);
-	var tokens      = tokenizer(c);
-	var statements  = statementer(tokens);
-	var definitions = detect_defs(statements);
-	var calls       = detect_calls(statements);
-	var output      = muxer(definitions, calls);
+	var c           = preproc(raw_c); //returns string of cleaned C code
+	var tokens      = tokenizer(c); //returns array of 'token' objects
+	var statements  = statementer(tokens); //returns array of statements (which are arrays of 'token' objects)
+	var definitions = detect_defs(statements); //returns array of 'func' objects
+	var calls       = detect_calls(statements); //returns array of 'call' objects
+	var output      = muxer(definitions, calls); //returns string of json, matching each call to a function definition
 
 	console.log(output);
 
-	fs.writeFileSync(filename + ".go", output);
+	var outfile = filename + ".go";
+	fs.writeFileSync(outfile, output);
+	return outfile;
 }
 
 parseFile("./tests/hash.c");
