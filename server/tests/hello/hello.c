@@ -9,6 +9,7 @@ int main()
 	return foo();
 }
 
+
 static int foo()
 {
 	return 0;

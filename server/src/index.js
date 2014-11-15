@@ -34,8 +34,13 @@ function run(files) {
 	});
 
 	//link and return the file maps
-	return link(maps);
+
+	var output = link(maps);
+
+	return JSON.stringify(output, function(k, v){return v;}, 4);
 }
+
+module.exports = run;
 
 //test
 console.log(run([

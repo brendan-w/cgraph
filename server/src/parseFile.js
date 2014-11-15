@@ -5,7 +5,7 @@
 
 	{
 		//file that this function map represents
-		file: "./tests/hello/hello.c",
+		filename: "./tests/hello/hello.c",
 
 		//main list of function definitions in the file
 		functions: [
@@ -61,7 +61,7 @@ function parseFile(filename)
 	var map         = loadCalls(definitions, calls); //returns array of 'func' objects, matched with the functions they call
 
 	var output = {
-		"file": filename,
+		"filename": filename,
 		"functions": map
 	};
 
