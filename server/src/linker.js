@@ -23,8 +23,17 @@ function JSONCall(name, fileID, funcID)
 {
 	return {
 		"name": name,
+		"linked": true,
 		"file_ID": fileID,
 		"func_ID": funcID,
+	};
+}
+
+function JSONUnlinkedCall(name)
+{
+	return {
+		"name": name,
+		"linked": false,
 	};
 }
 
@@ -41,7 +50,7 @@ module.exports = function(maps) {
 	/*
 		First pass
 
-		fill the publicIdents namespace
+		create call objects in publicIdents and fileIdents namespaces
 		build File and Function objects in output structure
 	*/
 	for(var m = 0; m < maps.length; m++)
@@ -82,6 +91,7 @@ module.exports = function(maps) {
 		Second pass
 
 		resolve call names to file and function IDs
+		create nodes for unlinked calls
 	*/
 	for(var m = 0; m < maps.length; m++)
 	{
@@ -101,8 +111,8 @@ module.exports = function(maps) {
 					jsonFunc.calls.push(inPrivate);
 				else if(inPublic) //the called function exists in the public scope
 					jsonFunc.calls.push(inPublic);
-				else
-					console.log("unlinked call: " + callName);
+				else //the call does not exist in the project (probably an external library)
+					jsonFunc.calls.push(new JSONUnlinkedCall(callName));
 			}
 		}
 	}
