@@ -44,6 +44,23 @@ module.exports = run;
 
 //test
 console.log(run([
-	"./tests/hello/hello.c",
-	"./tests/hello/other.c",
+  "../../../senna/SENNA_CHK.c",
+  "../../../senna/SENNA_Hash.c",
+  "../../../senna/SENNA_NER.c",
+  "../../../senna/SENNA_POS.c",
+  "../../../senna/SENNA_PSG.c",
+  "../../../senna/SENNA_PT0.c",
+  "../../../senna/SENNA_SRL.c",
+  "../../../senna/SENNA_Scores2Treillis.c",
+  "../../../senna/SENNA_Tokenizer.c",
+  "../../../senna/SENNA_Treillis.c",
+  "../../../senna/SENNA_VBS.c",
+  "../../../senna/SENNA_main.c",
+  "../../../senna/SENNA_nn.c",
+  "../../../senna/SENNA_utils.c"
+  //"../tests/libsvm/libsvm.c"
+	//"../tests/hello/hello.c",
+	//"../tests/hello/other.c",
+  //"../tests/memmgr/memmgr.c",
+  //"../tests/memmgr/memmgr.h",
 ]));

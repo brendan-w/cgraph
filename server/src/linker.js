@@ -39,7 +39,7 @@ function JSONUnlinkedCall(name)
 
 
 module.exports = function(maps) {
-	
+
 	//lookup object for mapping public names to files and functions
 	var publicIdents = {}; //publicIdents[func_name] = JSONCall
 	var fileIdents = []; //fileIdents[file_ID][func_name] = JSONCall
@@ -85,7 +85,7 @@ module.exports = function(maps) {
 
 		output.push(jsonFile);
 	}
-	
+
 
 	/*
 		Second pass
@@ -116,6 +116,6 @@ module.exports = function(maps) {
 			}
 		}
 	}
-
+  console.log(output);
 	return output;
 };
