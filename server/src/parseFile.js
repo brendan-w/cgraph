@@ -65,6 +65,8 @@ function parseFile(filename)
 		"functions": map
 	};
 
+	// console.log(tokens);
+
 	return output;
 }
 

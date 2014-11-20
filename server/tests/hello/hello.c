@@ -1,17 +1,21 @@
-
-
-
+/*
+aasdf
+*/
 int foo();
-
-int main()
+/*
+fffff
+*/
+int main() //main
 {
+	const char* = "asdfasdfasdf";
 	int i = bazz();
 	return foo();
-}
+} //end main
 
 
 static int foo()
 {
+	const char* = "asdfasdfasdf";
 	return 0;
 }
 

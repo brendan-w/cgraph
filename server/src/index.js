@@ -43,24 +43,24 @@ function run(files) {
 module.exports = run;
 
 //test
+var path_to_senna = "../../../senna/";
 console.log(run([
-  "../../../senna/SENNA_CHK.c",
-  "../../../senna/SENNA_Hash.c",
-  "../../../senna/SENNA_NER.c",
-  "../../../senna/SENNA_POS.c",
-  "../../../senna/SENNA_PSG.c",
-  "../../../senna/SENNA_PT0.c",
-  "../../../senna/SENNA_SRL.c",
-  "../../../senna/SENNA_Scores2Treillis.c",
-  "../../../senna/SENNA_Tokenizer.c",
-  "../../../senna/SENNA_Treillis.c",
-  "../../../senna/SENNA_VBS.c",
-  "../../../senna/SENNA_main.c",
-  "../../../senna/SENNA_nn.c",
-  "../../../senna/SENNA_utils.c"
-  //"../tests/libsvm/libsvm.c"
-	//"../tests/hello/hello.c",
-	//"../tests/hello/other.c",
   //"../tests/memmgr/memmgr.c",
   //"../tests/memmgr/memmgr.h",
+	//"./tests/hello/hello.c",
+	//"./tests/hello/other.c",
+	path_to_senna + "SENNA_CHK.c",
+	path_to_senna + "SENNA_Hash.c",
+	path_to_senna + "SENNA_main.c",
+	path_to_senna + "SENNA_NER.c",
+	path_to_senna + "SENNA_nn.c",
+	path_to_senna + "SENNA_POS.c",
+	path_to_senna + "SENNA_PSG.c",
+	path_to_senna + "SENNA_PT0.c",
+	path_to_senna + "SENNA_Scores2Treillis.c",
+	path_to_senna + "SENNA_SRL.c",
+	path_to_senna + "SENNA_Tokenizer.c",
+	path_to_senna + "SENNA_Treillis.c",
+	path_to_senna + "SENNA_utils.c",
+	path_to_senna + "SENNA_VBS.c",
 ]));
