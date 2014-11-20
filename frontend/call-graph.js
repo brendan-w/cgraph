@@ -3,6 +3,74 @@ var links = [{source: "get_mem_from_pool", target: "memmgr_free", type: "licensi
              {source: "memmgr_init", target: "memmgr_free", type: "suit"},
              {source: "memmgr_free", target: "memmgr_free", type: "resolved"}];
 
+var methods,
+    calls;
+
+calls = [
+  {
+    // Required Attrs
+    "source_func_id": 1,
+    "target_func_id": 3,
+    // Might be useful?
+    "source_name": "get_mem_source_pool",
+    "target_name": "memmgr_free",
+    "linked": true,
+    "source_file_id": 0,
+    "target_file_id": 0
+  },
+  {
+    // Required Attrs
+    "source_func_id": 2,
+    "target_func_id": 1,
+    // Might be useful?
+    "source_name": "memmgr_alloc",
+    "target_name": "get_mem_source_pool",
+    "linked": true,
+    "source_file_id": 0,
+    "target_file_id": 0
+  }
+];
+
+methods = [
+  {
+    "filename": "../tests/memmgr/memmgr.c",
+    "file_id": 0,
+    "func_id": 0,
+    "name": "memmgr_init",
+    "public": true,
+    "start_line": 36,
+    "end_line": 42,
+  },
+  {
+    "filename": "../tests/memmgr/memmgr.c",
+    "file_id": 0,
+    "func_id": 1,
+    "name": "get_mem_source_pool",
+    "public": false,
+    "start_line": 43,
+    "end_line": 62
+  },
+  {
+    "filename": "../tests/memmgr/memmgr.c",
+    "file_id": 0,
+    "func_id": 2,
+    "name": "memmgr_alloc",
+    "public": true,
+    "start_line": 71,
+    "end_line": 128
+  },
+  {
+    "filename": "../tests/memmgr/memmgr.c",
+    "file_id": 0,
+    "func_id": 3,
+    "name": "memmgr_free",
+    "public": true,
+    "start_line": 134,
+    "end_line": 176
+  }
+];
+
+
 //sort links by source, then target
 links.sort(function(a,b) {
     if (a.source > b.source) {return 1;}
