@@ -116,6 +116,5 @@ module.exports = function(maps) {
 			}
 		}
 	}
-  console.log(output);
 	return output;
 };
