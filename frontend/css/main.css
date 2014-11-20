@@ -1,0 +1,66 @@
+* {
+   box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: "Merriweather", serif;
+}
+
+body {
+  margin: 2.5%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Merriweather Sans", sans-serif;
+}
+
+h1 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+pre,
+code {
+  font-family: "Inconsolata", monospace;
+  font-size: 0.9em;
+}
+
+.column {
+  float: left;
+  /*margin-right: 5%;*/
+}
+
+/*
+ *.column:last-child {
+ *  margin-right: 0;
+ *}
+ */
+
+.code_column {
+    width: 40%;
+    height: 90%;
+}
+
+.viz_column {
+    width: 55%;
+}
+
+/*pre*/.code_block {
+  height: 100%;
+}
+
+/*pre*/.wrap {
+  /*Make pre tag wrap*/
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+/*code*/.code_viewer {
+  overflow: auto;
+}
