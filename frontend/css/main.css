@@ -3,7 +3,7 @@
  */
 
 * {
-   box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html,
@@ -34,30 +34,23 @@ code {
 
 .column {
   float: left;
-  /*margin-right: 5%;*/
 }
 
-/*
- *.column:last-child {
- *  margin-right: 0;
- *}
- */
-
 .code_column {
-    width: 40%;
-    height: 90%;
+  width: 50%;
+  height: 85%;
 }
 
 .viz_column {
-    width: 55%;
+  width: 50%;
 }
 
 /*pre*/.code_block {
   height: 100%;
 }
 
+/*Make pre tag wrap*/
 /*pre*/.wrap {
-  /*Make pre tag wrap*/
   white-space: pre-wrap;       /* css-3 */
   white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
   white-space: -pre-wrap;      /* Opera 4-6 */
@@ -66,29 +59,21 @@ code {
 }
 
 /*code*/.code_viewer {
-  overflow: auto;
+overflow: auto;
 }
 
 /*
  * SVG Styles
  */
 
+svg {
+  width: 100%;
+}
+
 path.link {
   fill: none;
   stroke: #666;
   stroke-width: 1.5px;
-}
-
-marker#licensing {
-  fill: green;
-}
-
-path.link.licensing {
-  stroke: green;
-}
-
-path.link.resolved {
-  stroke-dasharray: 0,2 1;
 }
 
 circle {
