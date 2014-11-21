@@ -186,8 +186,16 @@ function tick() {
 }
 
 function scrollToLine(lineNumber) {
-  console.log(lineNumber);
-  elem = document.querySelector(".line-numbers-rows :nth-child(" + lineNumber + ")");
+  var padding = 1,
+      paddedLine = lineNumber - padding;
+
+  // For now pad lines by X if possible
+  if (lineNumber - padding < 1) {
+    elem = document.querySelector(".line-numbers-rows :nth-child(" + lineNumber + ")");
+  }
+  else {
+    elem = document.querySelector(".line-numbers-rows :nth-child(" + paddedLine  + ")");
+  }
   elem.scrollIntoView();
   return true;
 }
