@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/brendanwhitfield/cgraph",
   "dependencies": {
+    "d3": "^3.4.13",
     "reqwest": "^1.1.5"
   }
 }
