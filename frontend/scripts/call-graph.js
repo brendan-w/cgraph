@@ -1,59 +1,28 @@
 calls = [
   {
-    // Required Attrs
-    "source": 1,
-    "target": 3,
-    // Might be useful?
-    "source_name": "get_mem_source_pool",
-    "target_name": "memmgr_free",
-    "linked": true,
-    "source_file_id": 0,
-    "target_file_id": 0
+    "source_func_id": 1,
+    "target_func_id": 3,
   },
   {
-    // Required Attrs
-    "source": 2,
-    "target": 1,
-    // Might be useful?
-    "source_name": "memmgr_alloc",
-    "target_name": "get_mem_source_pool",
-    "linked": true,
-    "source_file_id": 0,
-    "target_file_id": 0
+    "source_func_id": 2,
+    "target_func_id": 1,
   },
   // Extra links to make show current multi link capabilities
   {
-    // Required Attrs
-    "source": 2,
-    "target": 1,
-    // Might be useful?
-    "source_name": "memmgr_alloc",
-    "target_name": "get_mem_source_pool",
-    "linked": true,
-    "source_file_id": 0,
-    "target_file_id": 0
+    "source_func_id": 2,
+    "target_func_id": 1,
   },
   {
-    // Required Attrs
-    "source": 2,
-    "target": 1,
-    // Might be useful?
-    "source_name": "memmgr_alloc",
-    "target_name": "get_mem_source_pool",
-    "linked": true,
-    "source_file_id": 0,
-    "target_file_id": 0
+    "source_func_id": 2,
+    "target_func_id": 1,
   },
   {
-    // Required Attrs
-    "source": 1,
-    "target": 2,
-    // Might be useful?
-    "source_name": "memmgr_alloc",
-    "target_name": "get_mem_source_pool",
-    "linked": true,
-    "source_file_id": 0,
-    "target_file_id": 0
+    "source_func_id": 2,
+    "target_func_id": 1,
+  },
+  {
+    "source_func_id": 1,
+    "target_func_id": 2,
   }
 ];
 
@@ -61,6 +30,7 @@ methods = [
   {
     "filename": "../tests/memmgr/memmgr.c",
     "file_id": 0,
+    "func_id": 0,
     "id": 0,
     "name": "memmgr_init",
     "public": true,
@@ -70,6 +40,7 @@ methods = [
   {
     "filename": "../tests/memmgr/memmgr.c",
     "file_id": 0,
+    "func_id": 1,
     "id": 1,
     "name": "get_mem_source_pool",
     "public": false,
@@ -79,6 +50,7 @@ methods = [
   {
     "filename": "../tests/memmgr/memmgr.c",
     "file_id": 0,
+    "func_id": 3,
     "id": 2,
     "name": "memmgr_alloc",
     "public": true,
@@ -88,6 +60,7 @@ methods = [
   {
     "filename": "../tests/memmgr/memmgr.c",
     "file_id": 0,
+    "func_id": 4,
     "id": 3,
     "name": "memmgr_free",
     "public": true,
@@ -97,15 +70,52 @@ methods = [
 ];
 
 
-for (var i=0; i<calls.length; i++) {
-    if (i !== 0 &&
-        calls[i].source == calls[i-1].source &&
-        calls[i].target == calls[i-1].target) {
-            calls[i].linknum = calls[i-1].linknum + 1;
-        }
+for (var i = 0; i < calls.length; i++) {
+  if (i !== 0 &&
+    calls[i].source_func_id == calls[i-1].source_func_id &&
+    calls[i].target_func_id == calls[i-1].target_func_id) {
+    calls[i].linknum = calls[i-1].linknum + 1;
+  }
+  else {
+    calls[i].linknum = 1;
+  }
+}
+
+console.log(calls);
+
+// sort the links by source, then target
+function sortLinks(data) {
+  data.links.sort(function(a, b) {
+    if (a.source > b.source) return 1;
+    else if (a.source < b.source) return -1;
     else {
-      calls[i].linknum = 1;
+      if (a.target > b.target) return 1;
+      if (a.target < b.target) return -1;
+      else return 0;
     }
+  });
+  return data;
+}
+
+//any links with duplicate source and target get an incremented 'linknum'
+function setLinkIndexAndNum() {
+  for (var i = 0; i < data.links.length; i++) {
+    if (i !== 0 &&
+        data.links[i].source == data.links[i-1].source &&
+        data.links[i].target == data.links[i-1].target) {
+      data.links[i].linkindex = data.links[i-1].linkindex + 1;
+    }
+    else {
+      data.links[i].linkindex = 1;
+    }
+    // save the total number of links between two nodes
+    if(mLinkNum[data.links[i].target + "," + data.links[i].source] !== undefined) {
+      mLinkNum[data.links[i].target + "," + data.links[i].source] = data.links[i].linkindex;
+    }
+    else {
+      mLinkNum[data.links[i].source + "," + data.links[i].target] = data.links[i].linkindex;
+    }
+  }
 }
 
 var w = 600,
@@ -118,11 +128,13 @@ var force = d3.layout.force()
     .linkDistance(60)
     .charge(-300)
     .on("tick", tick)
-    .start();
+    .start()
+    ;
 
 var svg = d3.select(".viz_column").append("svg:svg")
     //.attr("width", w)
-    .attr("height", h);
+    .attr("height", h)
+    ;
 
 // Arrow head
 svg.append("defs")
@@ -135,13 +147,15 @@ svg.append("defs")
     .attr("markerHeight", 6)
     .attr("orient", "auto")
   .append("path")
-    .attr("d", "M0,-5L10,0L0,5");
+    .attr("d", "M0,-5L10,0L0,5")
+    ;
 
 var path = svg.append("svg:g").selectAll("path")
     .data(force.links())
   .enter().append("svg:path")
     .attr("class", function(d) { return "link " + d.target_name; })
-    .attr("marker-end", function(d) { return "url(#end)"; });
+    .attr("marker-end", function(d) { return "url(#end)"; })
+    ;
 
 var circle = svg.append("svg:g").selectAll("circle")
     .data(force.nodes())
@@ -153,27 +167,33 @@ var circle = svg.append("svg:g").selectAll("circle")
 
 var text = svg.append("svg:g").selectAll("g")
     .data(force.nodes())
-  .enter().append("svg:g");
+  .enter().append("svg:g")
+    ;
 
 // A copy of the text with a thick white stroke for legibility.
 text.append("svg:text")
     .attr("x", 8)
     .attr("y", ".31em")
     .attr("class", "shadow")
-    .text(function(d) { return d.name; });
+    .text(function(d) { return d.name; })
+    ;
 
 text.append("svg:text")
     .attr("x", 8)
     .attr("y", ".31em")
-    .text(function(d) { return d.name; });
+    .text(function(d) { return d.name; })
+    ;
 
 // Use elliptical arc path segments to doubly-encode directionality.
 function tick() {
   path.attr("d", function(d) {
-    var dx = d.target.x - d.source.x,
-        dy = d.target.y - d.source.y,
+    var dx = d.target_func_id.x - d.source_func_id.x,
+        dy = d.target_func_id.y - d.source_func_id.y,
         dr = 75/d.linknum;  //linknum is defined above
-    return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+
+    return "M" + d.source_func_id.x + "," + d.source_func_id.y +
+           "A" + dr + "," + dr + " 0 0,1 " +
+           d.target_func_id.x + "," + d.target_func_id.y;
   });
 
   circle.attr("transform", function(d) {
@@ -187,7 +207,7 @@ function tick() {
 
 function scrollToLine(lineNumber) {
   var padding = 1,
-      paddedLine = lineNumber - padding;
+  paddedLine = lineNumber - padding;
 
   // For now pad lines by X if possible
   if (lineNumber - padding < 1) {
