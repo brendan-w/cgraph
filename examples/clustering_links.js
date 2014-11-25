@@ -15,7 +15,7 @@ for (var i = 0; i < numClusters; i++) {
     clusters["c" + i].push(node);
 
     if (nodes.length > 1) {
-      var numLinks = Math.floor(Math.random() * 10);
+      var numLinks = Math.floor(Math.random() * 5);
 
       for (var k = 0; k < numLinks; k++) {
         var pred = nodes[Math.floor(Math.random() * (nodes.length - 1))];
@@ -30,8 +30,10 @@ for (var i = 0; i < numClusters; i++) {
   }
 }
 
-console.log(nodes);
-console.log(links);
+//console.log(nodes);
+//console.log(links);
+console.log(clusters);
+//console.log(linked);
 
 var colors = d3.scale.category20()
   .domain(d3.keys(clusters));
@@ -47,7 +49,7 @@ function zoom() {
 
 var svgRoot = d3.select("#chart")
   .attr("width", "100%")
-  .attr("height", "600px");
+  .attr("height", "700px");
 
 svgRoot.append("rect")
   .attr("width", "100%")
@@ -60,7 +62,7 @@ svg = svgRoot.append("g");
 
 var force = d3.layout.force()
   .charge(-250)
-  .linkDistance(300)
+  .linkDistance(250)
   .size([width, height])
   .nodes(nodes)
   .links(links)
@@ -85,7 +87,8 @@ var hull = svg.selectAll("path.hull")
     .classed("hull", true)
     .attr("d", clusterPath)
     .style("fill", function(d) { return colors(d); })
-    .style("fill-opacity", "0.5");
+    .style("fill-opacity", "0.5")
+    ;
 
 var link = svg.selectAll("line.link")
   .data(links)
@@ -93,7 +96,8 @@ var link = svg.selectAll("line.link")
     .append("line")
     .classed("link", true)
     .style("stroke", "black")
-    .style("stroke-width", "1.5px");
+    .style("stroke-width", "1.5px")
+    ;
 
 var node = svg.selectAll("circle.node")
   .data(nodes)
@@ -102,11 +106,13 @@ var node = svg.selectAll("circle.node")
     .classed("node", true)
     .style("fill", function(d) { return colors(d.cluster); })
     .attr("r", 5)
-    .call(force.drag);
+    //.call(force.drag)
+    ;
 
-node
-  .append("title")
-  .text(function(d) { return d.name; });
+//node
+  //.append("title")
+  //.text(function(d) { return d.name; })
+  //;
 
 force.on("tick", function(e) {
   d3.values(clusters).forEach(function(cluster) {
@@ -127,15 +133,18 @@ force.on("tick", function(e) {
   });
 
   hull
-    .attr("d", clusterPath);
+    .attr("d", clusterPath)
+    ;
 
   link
     .attr("x1", function(d) { return d.source.x; })
     .attr("y1", function(d) { return d.source.y; })
     .attr("x2", function(d) { return d.target.x; })
-    .attr("y2", function(d) { return d.target.y; });
+    .attr("y2", function(d) { return d.target.y; })
+    ;
 
   node
     .attr("cx", function(d) { return d.x; })
-    .attr("cy", function(d) { return d.y; });
+    .attr("cy", function(d) { return d.y; })
+    ;
 });
