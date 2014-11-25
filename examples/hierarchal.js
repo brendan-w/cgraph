@@ -37,22 +37,22 @@ function network(data, prev, index, expand) {
       links = []; // output links
 
   // process previous nodes for reuse or centroid calculation
-  if (prev) {
-    prev.nodes.forEach(function(node) {
-      var i = index(node),
-          obj;
-      if (node.size > 0) {
-        prev_node_group[i] = node;
-        node.size = 0;
-      } else {
-        obj = prev_group_centroids[i] ||
-              (prev_group_centroids[i] = {x: 0, y: 0, count: 0});
-        obj.x += node.x;
-        obj.y += node.y;
-        obj.count += 1;
-      }
-    });
-  }
+  //if (prev) {
+    //prev.nodes.forEach(function(node) {
+      //var i = index(node),
+          //obj;
+      //if (node.size > 0) {
+        //prev_node_group[i] = node;
+        //node.size = 0;
+      //} else {
+        //obj = prev_group_centroids[i] ||
+              //(prev_group_centroids[i] = {x: 0, y: 0, count: 0});
+        //obj.x += node.x;
+        //obj.y += node.y;
+        //obj.count += 1;
+      //}
+    //});
+  //}
 
   // determine nodes
   for (var k = 0; k < data.nodes.length; k++) {
@@ -186,17 +186,7 @@ function init() {
         }
         else {
           console.log("large");
-          return 300;
-        }
-      })
-      .charge(function(d) {
-        if (d.source.index === d.target.index) {
-          console.log("small");
-          return 10;
-        }
-        else {
-          console.log("large");
-          return 300;
+          return 100;
         }
       })
       .start();
