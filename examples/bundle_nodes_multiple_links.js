@@ -17,7 +17,7 @@ var width = 960,        // svg width
     helper_nodeg,
     node,
     hnode,
-    debug = 2; // 0: disable, 1: all, 2: only force2
+    debug = 1; // 0: disable, 1: all, 2: only force2
 
 var curve = d3.svg.line()
   .interpolate("cardinal-closed")
@@ -208,15 +208,16 @@ function network(data, prev) {
     rv = nmr[ix] || (nmr[ix] = data.helpers.right[ix] || (data.helpers.right[ix] = {ref: v, id: "_rh_" + ix, size: -1, link_ref: l}));
     uimg = nmimg[ui];
     vimg = nmimg[vi];
-    ll = lml[ix] || ( lml[ix] = { g_ref: l, ref: e, id: "l"+ix,
-                      source: uimg, target: lu, real_source: u, real_target: v,
-                      size: 0, distance: 0, left_seg: true});
-    l_ = lmm[ix] || (lmm[ix] = {g_ref: l, ref: e, id: "m"+ix, source:  lu, target:  rv, real_source:u, real_target:v, size:0, distance: 0, middle_seg: true});
-    lr = lmr[ix] || (lmr[ix] = {g_ref: l, ref: e, id: "r"+ix, source:  rv, target:vimg, real_source:u, real_target:v, size:0, distance: 0, right_seg : true});
+    // Force 2 links helpers, left, middle, right
+    //ll = lml[ix] || ( lml[ix] = { g_ref: l, ref: e, id: "l"+ix,
+                      //source: uimg, target: lu, real_source: u, real_target: v,
+                      //size: 0, distance: 0, left_seg: true});
+    //l_ = lmm[ix] || (lmm[ix] = {g_ref: l, ref: e, id: "m"+ix, source:  lu, target:  rv, real_source:u, real_target:v, size:0, distance: 0, middle_seg: true});
+    //lr = lmr[ix] || (lmr[ix] = {g_ref: l, ref: e, id: "r"+ix, source:  rv, target:vimg, real_source:u, real_target:v, size:0, distance: 0, right_seg : true});
     l.size += 1;
-    ll.size += 1;
-    l_.size += 1;
-    lr.size += 1;
+    //ll.size += 1;
+    //l_.size += 1;
+    //lr.size += 1;
 
     // these are only useful for single-linked nodes, but we don't care;
     // here we have everything we need at minimum cost.
@@ -231,11 +232,11 @@ function network(data, prev) {
   }
 
   for (k in lm) { links.push(lm[k]); }
-  for (k in lml) { helper_links.push(lml[k]); }
-  for (k in lmm) { helper_links.push(lmm[k]); helper_render_links.push(lmm[k]); }
-  for (k in lmr) { helper_links.push(lmr[k]); }
-  for (k in nml) { helper_nodes.push(nml[k]); }
-  for (k in nmr) { helper_nodes.push(nmr[k]); }
+  //for (k in lml) { helper_links.push(lml[k]); }
+  //for (k in lmm) { helper_links.push(lmm[k]); helper_render_links.push(lmm[k]); }
+  //for (k in lmr) { helper_links.push(lmr[k]); }
+  //for (k in nml) { helper_nodes.push(nml[k]); }
+  //for (k in nmr) { helper_nodes.push(nmr[k]); }
 
   return {nodes: nodes, links: links, helper_nodes: helper_nodes, helper_links: helper_links, helper_render_links: helper_render_links};
 }
@@ -476,7 +477,7 @@ function init() {
           return 20;
         return 1;
       })
-       // just a tad of gravidy to help keep those curvy buttocks decent
+       // just a tad of gravity to help keep those curvy buttocks decent
       .gravity(0.0)
       .charge(function(d, i) {
         // helper nodes have a medium-to-high charge, depending on the number
@@ -496,7 +497,8 @@ function init() {
           return -30;
         return -1;
       })
-      .friction(0.95)
+      .charge(0)
+      .friction(0)
       .start()
       // and immediately stop! force.tick will drive this one every tick!
       .stop();
@@ -524,9 +526,12 @@ function init() {
     link.style("stroke-width", function(d) { return d.size || 1; });
   }
 
-  hlink = helper_linkg.selectAll("path.hlink").data(net.helper_render_links, function(d) {
-    return d.id;
-  });
+  hlink = helper_linkg
+    .selectAll("path.hlink")
+    .data(net.helper_render_links, function(d) {
+      return d.id;
+    })
+    ;
   hlink.exit().remove();
   hlink.enter().append("path")
       .attr("class", "hlink");
@@ -801,13 +806,13 @@ function init() {
       l.distance = o.distance;
     });
 
-    // NOTE: force2 is fully driven by force(1), but still there's need for 'fast stop' handling in here
-    //       as our force2 may be more 'joyous' in animating the links that force is animating the nodes
-    //       themselves. Hence we also take the delta movement of the helper nodes into account!
+    // NOTE: force2 is fully driven by force(1), but still there's need for
+    // 'fast stop' handling in here as our force2 may be more 'joyous' in
+    // animating the links that force is animating the nodes themselves.
+    // Hence we also take the delta movement of the helper nodes into account!
     net.helper_nodes.forEach(function(n) {
-      // skip the 'fixed' buggers: those are already accounted for in force.tick!
-      if (n.fixed)
-        return;
+      // skip the 'fixed' buggers: those are already accounted for in force.tick
+      if (n.fixed) return;
 
       // plus copy for faster stop check
       change_squared += (n.qx - n.x) * (n.qx - n.x);
