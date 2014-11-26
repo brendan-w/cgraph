@@ -65,20 +65,12 @@ function network(data, prev) {
   expand = expand || {};
   var gm = {},    // group map
       nm = {},    // node map
-      nml = {},   // node map for left-side 'link path helper nodes'
-      nmr = {},   // node map for right-side 'link path helper nodes'
       nmimg = {}, // node map for cloned nodes for force2
       lm = {},    // link maps - lm ~ lml-lmm-lmr
-      lml = {},
-      lmm = {},
-      lmr = {},
-      gn = {},                  // previous group nodes
-      gc = {},                  // previous group centroids
-      nodes = [],               // output nodes
-      links = [],               // output links
-      helper_nodes = [],        // helper force graph nodes
-      helper_links = [];        // helper force graph links
-      helper_render_links = []; // helper force graph links
+      gn = {},    // previous group nodes
+      gc = {},    // previous group centroids
+      nodes = [], // output nodes
+      links = []; // output links
 
   // process previous nodes for reuse or centroid calculation
   if (prev) {
@@ -140,7 +132,7 @@ function network(data, prev) {
               id: nodeid(n) };
       nmimg[nodeid(n)] = img;
       nodes.push(n);
-      helper_nodes.push(img);
+      //helper_nodes.push(img);
       if (gn[i]) {
         // place new nodes at cluster location (plus jitter)
         n.x = gn[i].x + Math.random();
@@ -166,7 +158,7 @@ function network(data, prev) {
         l.size = 0;
         nmimg[nodeid(n)] = img;
         nodes.push(l);
-        helper_nodes.push(img);
+        //helper_nodes.push(img);
 
         if (gc[i]) {
           l.x = gc[i].x / gc[i].count;
@@ -235,7 +227,6 @@ function network(data, prev) {
     current_source = nodeid(source);
     current_target = nodeid(target);
 
-
     if (current_source < current_target)
       link_map_key = current_source + "|" + current_target;
     else
@@ -265,10 +256,7 @@ function network(data, prev) {
   }
 
   return { nodes: nodes,
-           links: links,
-           helper_nodes: helper_nodes,
-           helper_links: helper_links,
-           helper_render_links: helper_render_links
+           links: links
   };
 }
 
@@ -376,18 +364,10 @@ d3.json("miserables.json", function(json) {
   data.helpers = {left: {}, right: {}};
 
   hullg = vis.append("g");
-  //if (debug) {
-    linkg = vis.append("g");
-    helper_nodeg = vis.append("g");
-  //}
+  linkg = vis.append("g");
+  helper_nodeg = vis.append("g");
   helper_linkg = vis.append("g");
   nodeg = vis.append("g");
-  // Show the center of mass
-  //if (debug == 1) {
-    //node = vis.append("g").append("circle")
-        //.attr("class", "center-of-mass")
-        //.attr("r", 10);
-  //}
 
   init();
 
@@ -489,61 +469,6 @@ function init() {
       .friction(0.7)
       .start();
 
-  /*
-  And here's the crazy idea for allowing AND rendering multiple links between
-  2 nodes, etc., as the initial attempt to include the 'helper' nodes in the
-  basic 'force' failed dramatically from a visual PoV: we 'overlay' the basic
-  nodes+links force with a SECOND force layout which 'augments' the original
-  force layout by having it 'layout' all the helper nodes (with their links)
-  between the 'fixed' REAL nodes, which are laid out by the original force.
-
-  This way, we also have the freedom to apply a completely different force
-  field setup to the helpers (no gravity as it doesn't make sense for helpers,
-  different charge values, etc.).
-  */
-
-  //force2 = d3.layout.force()
-      //.nodes(net.helper_nodes)
-      //.links(net.helper_links)
-      //.size([width, height])
-      //.linkDistance(function(l, i) {
-        //var n1 = l.real_source,
-            //n2 = l.real_target,
-            //rv,
-            //lr = l.g_ref,
-            //n1r, n2r,
-            //dx, dy;
-
-        //if (lr.source.size > 0 || lr.target.size > 0) return 20;
-
-        //return 1;
-      //})
-       //// just a tad of gravity to help keep those curvy buttocks decent
-      //.gravity(0.0)
-      //.charge(function(d, i) {
-        //// helper nodes have a medium-to-high charge, depending on the number
-        //// of links the related force link represents.
-        //// Hence bundles of links fro A->B will have helper nodes with huge
-        //// charges: better spreading of the link paths.
-
-        //// Unless we're looking at helpers for links between 'real nodes',
-        //// NOT GROUPS: in that case we want to keep the lines are straight as
-        //// possible as there would only be one relation for A->B anyway, so we
-        //// lower the charge for such nodes and helpers.
-        //if (d.fixed)
-          //return -10;
-        //var l = d.link_ref,
-            //c = l.link_count || 1;
-        //if (l.source.size > 0 || l.target.size > 0)
-          //return -30;
-        //return -1;
-      //})
-      //.charge(0)
-      //.friction(0)
-      //.start()
-      //// and immediately stop! force.tick will drive this one every tick!
-      //.stop();
-
   hullg.selectAll("path.hull").remove();
   hull = hullg.selectAll("path.hull")
       .data(convexHulls(net.nodes, off))
@@ -565,41 +490,6 @@ function init() {
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
   link.style("stroke-width", function(d) { return d.size || 1; });
-
-  //hlink = helper_linkg
-    //.selectAll("path.hlink")
-    //.data(net.helper_render_links, function(d) {
-      //return d.id;
-    //})
-    //;
-
-  //hlink.exit().remove();
-  //hlink.enter().append("path")
-    //.attr("class", "hlink")
-    //;
-
-  //// both existing and enter()ed links may have changed stroke width due to
-  //// expand state change somewhere:
-  //hlink.style("stroke-width", function(d) { return d.size || 1; });
-
-  //if (debug) {
-    //hnode = helper_nodeg.selectAll("circle.node").data(net.helper_nodes, function(d) {
-      //return d.id;
-    //});
-    //hnode.exit().remove();
-    //hnode.enter().append("circle")
-        //// if (d.size) -- d.size > 0 when d is a group node.
-        //// d.size < 0 when d is a 'path helper node'.
-        //.attr("class", function(d) {
-          //return "node" + (d.size > 0 ? "" : d.size < 0 ? " helper" : " leaf");
-        //})
-        //.attr("r", function(d) {
-          //return d.size > 0 ? d.size + dr : d.size < 0 ? 2 : dr + 1;
-        //})
-        //.attr("cx", function(d) { return d.x; })
-        //.attr("cy", function(d) { return d.y; })
-        //.style("fill", function(d) { return fill(d.group); });
-  //}
 
   node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
   node.exit().remove();
@@ -657,6 +547,7 @@ function init() {
         alpha;
 
     drag_in_progress = false;
+
     net.nodes.forEach(function(n) {
       var w = Math.max(1, n.size || 0, n.weight || 0);
 
@@ -678,9 +569,21 @@ function init() {
     my = size[1] / 2;
 
     singles.forEach(function(n) {
-      var l = n.first_link, n2 = n.first_link_target,
-          proj, ax, bx, ay, by, k, x, y, alpha, rej, power,
-          dx, dy,
+      var l = n.first_link,
+          n2 = n.first_link_target,
+          proj,
+          ax,
+          bx,
+          ay,
+          by,
+          k,
+          x,
+          y,
+          alpha,
+          rej,
+          power,
+          dx,
+          dy,
           n_is_group = n.size || 0,
           ng = n.group_data || n,
           c2,
@@ -705,7 +608,9 @@ function init() {
       // dual linked nodes,
       // only reduce ever so slightly for nodes with few links (~ 3) that made
       // it into this 'singles' selection
-      if (k = alpha * force.gravity() * (0.8 + power)) {
+      k = alpha * force.gravity() * (0.8 + power);
+      console.log(k);
+      if (k) {
         dx = (mx - n.x) * k;
         dy = (my - n.y) * k;
         n.x -= dx;
@@ -781,12 +686,6 @@ function init() {
       n.qy = n.y;
     });
 
-    // kick the force2 to also do a bit of annealing alongside:
-    // to make it do something, we need to surround it alpha-tweaking stuff, though.
-    //force2.resume();
-    //force2.tick();
-    //force2.stop();
-
     // fast stop + the drag fix, part 2:
     if (change_squared < 0.005) {
       if (debug == 1) console.log("fast stop: CPU load redux");
@@ -839,54 +738,4 @@ function init() {
     node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
   });
-
-  //force2.on("tick", function(e) {
-    //[>
-      //Update all 'real'=fixed nodes.
-    //*/
-    //net.helper_nodes.forEach(function(n) {
-      //var o;
-      //if (n.fixed) {
-        //o = n.ref;
-        //n.px = n.x = o.x;
-        //n.py = n.y = o.y;
-      //}
-    //});
-    //net.helper_links.forEach(function(l) {
-      //var o = l.g_ref;
-      //l.distance = o.distance;
-    //});
-
-    //// NOTE: force2 is fully driven by force(1), but still there's need for
-    //// 'fast stop' handling in here as our force2 may be more 'joyous' in
-    //// animating the links that force is animating the nodes themselves.
-    //// Hence we also take the delta movement of the helper nodes into account!
-    //net.helper_nodes.forEach(function(n) {
-      //// skip the 'fixed' buggers: those are already accounted for in force.tick
-      //if (n.fixed) return;
-
-      //// plus copy for faster stop check
-      //change_squared += (n.qx - n.x) * (n.qx - n.x);
-      //change_squared += (n.qy - n.y) * (n.qy - n.y);
-      //n.qx = n.x;
-      //n.qy = n.y;
-    //});
-
-    //--------------------------------------------------------------------
-
-    //hlink.attr("d", function(d) {
-      //var linedata = [
-          //[d.real_source.x, d.real_source.y],
-          //[d.source.x, d.source.y],
-          //[d.target.x, d.target.y],
-          //[d.real_target.x, d.real_target.y]
-      //];
-      //return pathgen(linedata);
-    //});
-
-    //if (debug) {
-      //hnode.attr("cx", function(d) { return d.x; })
-           //.attr("cy", function(d) { return d.y; });
-    //}
-  //});
 }
