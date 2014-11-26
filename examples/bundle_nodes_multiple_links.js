@@ -259,22 +259,22 @@ function network(data, prev) {
                             target: target,
                             size: 0,
                             distance: 0});
-    if (ustate == 1) {
-      current_source = r_current_source;
-    }
+    //if (ustate == 1) {
+      //current_source = r_current_source;
+    //}
 
-    if (vstate == 1) {
-      current_target = r_current_target;
-    }
+    //if (vstate == 1) {
+      //current_target = r_current_target;
+    //}
 
     // "source_id|target_id|source_state|target_state"
-    if (current_source < current_target) {
-      ix = current_source + "|" + current_target + "|" + ustate + "|" + vstate;
-    }
-    else {
-      ix = current_target + "|" + current_source + "|" + vstate + "|" + ustate;
-    }
-    console.log(ix);
+    //if (current_source < current_target) {
+      //ix = current_source + "|" + current_target + "|" + ustate + "|" + vstate;
+    //}
+    //else {
+      //ix = current_target + "|" + current_source + "|" + vstate + "|" + ustate;
+    //}
+    //console.log(ix);
 
     // link(u,v) ==> u -> lu -> rv -> v
     //lu = nml[ix] ||
@@ -289,8 +289,8 @@ function network(data, prev) {
                                     //id: "_rh_" + ix,
                                     //size: -1,
                                     //link_ref: l}));
-    uimg = nmimg[current_source];
-    vimg = nmimg[current_target];
+    //uimg = nmimg[current_source];
+    //vimg = nmimg[current_target];
     // Force 2 links helpers, left, middle, right
     //ll = lml[ix] || ( lml[ix] = { g_ref: l, ref: e, id: "l"+ix,
                       //source: uimg, target: lu, real_source: u, real_target: v,
@@ -321,7 +321,13 @@ function network(data, prev) {
   //for (k in nml) { helper_nodes.push(nml[k]); }
   //for (k in nmr) { helper_nodes.push(nmr[k]); }
 
-  return {nodes: nodes, links: links, helper_nodes: helper_nodes, helper_links: helper_links, helper_render_links: helper_render_links};
+  return { nodes: nodes,
+           links: links,
+           helper_nodes: helper_nodes,
+           helper_links: helper_links,
+           helper_render_links:
+           helper_render_links
+  };
 }
 
 function convexHulls(nodes, offset) {
