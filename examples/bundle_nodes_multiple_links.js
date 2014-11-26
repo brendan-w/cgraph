@@ -195,30 +195,19 @@ function network(data, prev) {
     var current_link = data.links[j],
         source = getGroup(current_link.source),
         target = getGroup(current_link.target),
-        r_current_source,
-        r_current_target,
+        real_current_source,
+        real_current_target,
         current_source,
         current_target,
         lu,
         rv,
-        ustate,
-        vstate,
-        uimg,
-        vimg,
-        i,
-        ix,
-        l,
-        ll,
-        l_,
-        lr;
+        link_map_key,
+        link;
 
     if (source != target) {
       gm[source].ig_link_count++;
       gm[target].ig_link_count++;
     }
-
-    ustate = expand[source] || 0;
-    vstate = expand[target] || 0;
 
     // While d3.layout.force does convert link.source and link.target NUMERIC
     // values to direct node references, it doesn't for other attributes, such
@@ -226,10 +215,10 @@ function network(data, prev) {
     // references to skip the d3.layout.force implicit links conversion later
     // on and ensure that both .source/.target and .real_source/.real_target
     // are of the same type and pointing at valid nodes.
-    r_current_source = nodeid(current_link.source);
-    r_current_target = nodeid(current_link.target);
-    source = nm[r_current_source];
-    target = nm[r_current_target];
+    real_current_source = nodeid(current_link.source);
+    real_current_target = nodeid(current_link.target);
+    source = nm[real_current_source];
+    target = nm[real_current_target];
 
     if (source == target) {
       // skip links from node to same (A-A); they are rendered as 0-length
@@ -246,87 +235,40 @@ function network(data, prev) {
     current_source = nodeid(source);
     current_target = nodeid(target);
 
-    //i = (current_source < current_target ? current_source+"|"+current_target : current_target+"|"+current_source);
 
-    if (current_source < current_target) {
-      i = current_source + "|" + current_target;
-    }
-    else {
-      i = current_target + "|" + current_source;
-    }
+    if (current_source < current_target)
+      link_map_key = current_source + "|" + current_target;
+    else
+      link_map_key = current_target + "|" + current_source;
 
-    l = lm[i] || (lm[i] = { source: source,
-                            target: target,
-                            size: 0,
-                            distance: 0});
-    //if (ustate == 1) {
-      //current_source = r_current_source;
-    //}
-
-    //if (vstate == 1) {
-      //current_target = r_current_target;
-    //}
-
-    // "source_id|target_id|source_state|target_state"
-    //if (current_source < current_target) {
-      //ix = current_source + "|" + current_target + "|" + ustate + "|" + vstate;
-    //}
-    //else {
-      //ix = current_target + "|" + current_source + "|" + vstate + "|" + ustate;
-    //}
-    //console.log(ix);
-
-    // link(u,v) ==> u -> lu -> rv -> v
-    //lu = nml[ix] ||
-        //(nml[ix] = data.helpers.left[ix]  ||
-        //(data.helpers.left[ix]  = { ref: source,
-                                    //id: "_lh_" + ix,
-                                    //size: -1,
-                                    //link_ref: l}));
-    //rv = nmr[ix] ||
-        //(nmr[ix] = data.helpers.right[ix] ||
-        //(data.helpers.right[ix] = { ref: target,
-                                    //id: "_rh_" + ix,
-                                    //size: -1,
-                                    //link_ref: l}));
-    //uimg = nmimg[current_source];
-    //vimg = nmimg[current_target];
-    // Force 2 links helpers, left, middle, right
-    //ll = lml[ix] || ( lml[ix] = { g_ref: l, ref: e, id: "l"+ix,
-                      //source: uimg, target: lu, real_source: u, real_target: v,
-                      //size: 0, distance: 0, left_seg: true});
-    //l_ = lmm[ix] || (lmm[ix] = {g_ref: l, ref: e, id: "m"+ix, source:  lu, target:  rv, real_source:u, real_target:v, size:0, distance: 0, middle_seg: true});
-    //lr = lmr[ix] || (lmr[ix] = {g_ref: l, ref: e, id: "r"+ix, source:  rv, target:vimg, real_source:u, real_target:v, size:0, distance: 0, right_seg : true});
-    l.size += 1;
-    //ll.size += 1;
-    //l_.size += 1;
-    //lr.size += 1;
+    link = lm[link_map_key] ||
+          (lm[link_map_key] = { source: source,
+                                target: target,
+                                size: 0,
+                                distance: 0});
+    link.size += 1;
 
     // these are only useful for single-linked nodes, but we don't care;
     // here we have everything we need at minimum cost.
-    if (l.size == 1) {
+    if (link.size == 1) {
       source.link_count++;
       target.link_count++;
-      source.first_link = l;
-      target.first_link = l;
+      source.first_link = link;
+      target.first_link = link;
       source.first_link_target = target;
       target.first_link_target = source;
     }
   }
 
-  for (k in lm) { links.push(lm[k]); }
-  //for (k in lml) { helper_links.push(lml[k]); }
-  //for (k in lmm) { helper_links.push(lmm[k]); helper_render_links.push(lmm[k]); }
-  //for (k in lmr) { helper_links.push(lmr[k]); }
-  //for (k in nml) { helper_nodes.push(nml[k]); }
-  //for (k in nmr) { helper_nodes.push(nmr[k]); }
+  for (var link_iter in lm) {
+    links.push(lm[link_iter]);
+  }
 
   return { nodes: nodes,
            links: links,
            helper_nodes: helper_nodes,
            helper_links: helper_links,
-           helper_render_links:
-           helper_render_links
+           helper_render_links: helper_render_links
   };
 }
 
@@ -560,47 +502,47 @@ function init() {
   different charge values, etc.).
   */
 
-  force2 = d3.layout.force()
-      .nodes(net.helper_nodes)
-      .links(net.helper_links)
-      .size([width, height])
-      .linkDistance(function(l, i) {
-        var n1 = l.real_source,
-            n2 = l.real_target,
-            rv,
-            lr = l.g_ref,
-            n1r, n2r,
-            dx, dy;
+  //force2 = d3.layout.force()
+      //.nodes(net.helper_nodes)
+      //.links(net.helper_links)
+      //.size([width, height])
+      //.linkDistance(function(l, i) {
+        //var n1 = l.real_source,
+            //n2 = l.real_target,
+            //rv,
+            //lr = l.g_ref,
+            //n1r, n2r,
+            //dx, dy;
 
-        if (lr.source.size > 0 || lr.target.size > 0) return 20;
+        //if (lr.source.size > 0 || lr.target.size > 0) return 20;
 
-        return 1;
-      })
-       // just a tad of gravity to help keep those curvy buttocks decent
-      .gravity(0.0)
-      .charge(function(d, i) {
-        // helper nodes have a medium-to-high charge, depending on the number
-        // of links the related force link represents.
-        // Hence bundles of links fro A->B will have helper nodes with huge
-        // charges: better spreading of the link paths.
+        //return 1;
+      //})
+       //// just a tad of gravity to help keep those curvy buttocks decent
+      //.gravity(0.0)
+      //.charge(function(d, i) {
+        //// helper nodes have a medium-to-high charge, depending on the number
+        //// of links the related force link represents.
+        //// Hence bundles of links fro A->B will have helper nodes with huge
+        //// charges: better spreading of the link paths.
 
-        // Unless we're looking at helpers for links between 'real nodes',
-        // NOT GROUPS: in that case we want to keep the lines are straight as
-        // possible as there would only be one relation for A->B anyway, so we
-        // lower the charge for such nodes and helpers.
-        if (d.fixed)
-          return -10;
-        var l = d.link_ref,
-            c = l.link_count || 1;
-        if (l.source.size > 0 || l.target.size > 0)
-          return -30;
-        return -1;
-      })
-      .charge(0)
-      .friction(0)
-      .start()
-      // and immediately stop! force.tick will drive this one every tick!
-      .stop();
+        //// Unless we're looking at helpers for links between 'real nodes',
+        //// NOT GROUPS: in that case we want to keep the lines are straight as
+        //// possible as there would only be one relation for A->B anyway, so we
+        //// lower the charge for such nodes and helpers.
+        //if (d.fixed)
+          //return -10;
+        //var l = d.link_ref,
+            //c = l.link_count || 1;
+        //if (l.source.size > 0 || l.target.size > 0)
+          //return -30;
+        //return -1;
+      //})
+      //.charge(0)
+      //.friction(0)
+      //.start()
+      //// and immediately stop! force.tick will drive this one every tick!
+      //.stop();
 
   hullg.selectAll("path.hull").remove();
   hull = hullg.selectAll("path.hull")
@@ -614,46 +556,50 @@ function init() {
   link = linkg.selectAll("line.link").data(net.links, linkid);
   link.exit().remove();
   link.enter().append("line")
-      .attr("class", "link")
-      .attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
+    .attr("class", "link")
+    .attr("x1", function(d) { return d.source.x; })
+    .attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; })
+    .attr("y2", function(d) { return d.target.y; });
+
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
   link.style("stroke-width", function(d) { return d.size || 1; });
 
-  hlink = helper_linkg
-    .selectAll("path.hlink")
-    .data(net.helper_render_links, function(d) {
-      return d.id;
-    })
-    ;
-  hlink.exit().remove();
-  hlink.enter().append("path")
-      .attr("class", "hlink");
-  // both existing and enter()ed links may have changed stroke width due to
-  // expand state change somewhere:
-  hlink.style("stroke-width", function(d) { return d.size || 1; });
+  //hlink = helper_linkg
+    //.selectAll("path.hlink")
+    //.data(net.helper_render_links, function(d) {
+      //return d.id;
+    //})
+    //;
 
-  if (debug) {
-    hnode = helper_nodeg.selectAll("circle.node").data(net.helper_nodes, function(d) {
-      return d.id;
-    });
-    hnode.exit().remove();
-    hnode.enter().append("circle")
-        // if (d.size) -- d.size > 0 when d is a group node.
-        // d.size < 0 when d is a 'path helper node'.
-        .attr("class", function(d) {
-          return "node" + (d.size > 0 ? "" : d.size < 0 ? " helper" : " leaf");
-        })
-        .attr("r", function(d) {
-          return d.size > 0 ? d.size + dr : d.size < 0 ? 2 : dr + 1;
-        })
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; })
-        .style("fill", function(d) { return fill(d.group); });
-  }
+  //hlink.exit().remove();
+  //hlink.enter().append("path")
+    //.attr("class", "hlink")
+    //;
+
+  //// both existing and enter()ed links may have changed stroke width due to
+  //// expand state change somewhere:
+  //hlink.style("stroke-width", function(d) { return d.size || 1; });
+
+  //if (debug) {
+    //hnode = helper_nodeg.selectAll("circle.node").data(net.helper_nodes, function(d) {
+      //return d.id;
+    //});
+    //hnode.exit().remove();
+    //hnode.enter().append("circle")
+        //// if (d.size) -- d.size > 0 when d is a group node.
+        //// d.size < 0 when d is a 'path helper node'.
+        //.attr("class", function(d) {
+          //return "node" + (d.size > 0 ? "" : d.size < 0 ? " helper" : " leaf");
+        //})
+        //.attr("r", function(d) {
+          //return d.size > 0 ? d.size + dr : d.size < 0 ? 2 : dr + 1;
+        //})
+        //.attr("cx", function(d) { return d.x; })
+        //.attr("cy", function(d) { return d.y; })
+        //.style("fill", function(d) { return fill(d.group); });
+  //}
 
   node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
   node.exit().remove();
@@ -692,13 +638,13 @@ function init() {
   var resume_threshold = 0.05;
 
   force.on("tick", function(e) {
-    /*
-    Force all nodes with only one link to point outwards.
+    //Force all nodes with only one link to point outwards.
 
-    To do this, we first calculate the center mass (okay, we wing it, we fake node 'weight'),
-    then see whether the target node for links from single-link nodes is closer to the
-    center-of-mass than us, and if it isn't, we push the node outwards.
-    */
+    //To do this, we first calculate the center mass (okay, we wing it, we fake
+    //node 'weight'), then see whether the target node for links from single-link
+    //nodes is closer to the center-of-mass than us, and if it isn't, we push
+    //the node outwards.
+
     var center = {x: 0, y: 0, weight: 0},
         singles = [],
         size,
@@ -837,9 +783,9 @@ function init() {
 
     // kick the force2 to also do a bit of annealing alongside:
     // to make it do something, we need to surround it alpha-tweaking stuff, though.
-    force2.resume();
-    force2.tick();
-    force2.stop();
+    //force2.resume();
+    //force2.tick();
+    //force2.stop();
 
     // fast stop + the drag fix, part 2:
     if (change_squared < 0.005) {
@@ -894,53 +840,53 @@ function init() {
         .attr("cy", function(d) { return d.y; });
   });
 
-  force2.on("tick", function(e) {
-    /*
-      Update all 'real'=fixed nodes.
-    */
-    net.helper_nodes.forEach(function(n) {
-      var o;
-      if (n.fixed) {
-        o = n.ref;
-        n.px = n.x = o.x;
-        n.py = n.y = o.y;
-      }
-    });
-    net.helper_links.forEach(function(l) {
-      var o = l.g_ref;
-      l.distance = o.distance;
-    });
+  //force2.on("tick", function(e) {
+    //[>
+      //Update all 'real'=fixed nodes.
+    //*/
+    //net.helper_nodes.forEach(function(n) {
+      //var o;
+      //if (n.fixed) {
+        //o = n.ref;
+        //n.px = n.x = o.x;
+        //n.py = n.y = o.y;
+      //}
+    //});
+    //net.helper_links.forEach(function(l) {
+      //var o = l.g_ref;
+      //l.distance = o.distance;
+    //});
 
-    // NOTE: force2 is fully driven by force(1), but still there's need for
-    // 'fast stop' handling in here as our force2 may be more 'joyous' in
-    // animating the links that force is animating the nodes themselves.
-    // Hence we also take the delta movement of the helper nodes into account!
-    net.helper_nodes.forEach(function(n) {
-      // skip the 'fixed' buggers: those are already accounted for in force.tick
-      if (n.fixed) return;
+    //// NOTE: force2 is fully driven by force(1), but still there's need for
+    //// 'fast stop' handling in here as our force2 may be more 'joyous' in
+    //// animating the links that force is animating the nodes themselves.
+    //// Hence we also take the delta movement of the helper nodes into account!
+    //net.helper_nodes.forEach(function(n) {
+      //// skip the 'fixed' buggers: those are already accounted for in force.tick
+      //if (n.fixed) return;
 
-      // plus copy for faster stop check
-      change_squared += (n.qx - n.x) * (n.qx - n.x);
-      change_squared += (n.qy - n.y) * (n.qy - n.y);
-      n.qx = n.x;
-      n.qy = n.y;
-    });
+      //// plus copy for faster stop check
+      //change_squared += (n.qx - n.x) * (n.qx - n.x);
+      //change_squared += (n.qy - n.y) * (n.qy - n.y);
+      //n.qx = n.x;
+      //n.qy = n.y;
+    //});
 
     //--------------------------------------------------------------------
 
-    hlink.attr("d", function(d) {
-      var linedata = [
-          [d.real_source.x, d.real_source.y],
-          [d.source.x, d.source.y],
-          [d.target.x, d.target.y],
-          [d.real_target.x, d.real_target.y]
-      ];
-      return pathgen(linedata);
-    });
+    //hlink.attr("d", function(d) {
+      //var linedata = [
+          //[d.real_source.x, d.real_source.y],
+          //[d.source.x, d.source.y],
+          //[d.target.x, d.target.y],
+          //[d.real_target.x, d.real_target.y]
+      //];
+      //return pathgen(linedata);
+    //});
 
-    if (debug) {
-      hnode.attr("cx", function(d) { return d.x; })
-           .attr("cy", function(d) { return d.y; });
-    }
-  });
+    //if (debug) {
+      //hnode.attr("cx", function(d) { return d.x; })
+           //.attr("cy", function(d) { return d.y; });
+    //}
+  //});
 }
