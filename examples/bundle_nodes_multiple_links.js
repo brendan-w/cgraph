@@ -17,18 +17,24 @@ var width = 960,        // svg width
     helper_nodeg,
     node,
     hnode,
-    debug = 1; // 0: disable, 1: all, 2: only force2
+    debug = 0; // 0: disable, 1: all, 2: only force2
 
 var curve = d3.svg.line()
   .interpolate("cardinal-closed")
-  .tension(0.85);
+  // Changes the hardness of the convex hull's angles/curves
+  .tension(0.95);
 
 var fill = d3.scale.category20();
 
-function noop() { return false; }
-
 function nodeid(n) {
-  return n.size > 0 ? "_g_" + n.group + "_" + n.expansion : n.name;
+  if (n.size > 0) {
+    // e.g. "_g_10_1"
+    //console.log(n.size > 0 ? "_g_" + n.group + "_" + n.expansion : n.name);
+    return "_g_" + n.group + "_" + n.expansion;
+  }
+  else {
+    return n.name;
+  }
 }
 
 function linkid(l) {
@@ -43,11 +49,13 @@ function cycleState(d) {
   var g = d.group, s = expand[g] || 0;
   // it's no use 'expanding the intergroup links only' for nodes which only
   // have 1 outside link for real:
-  if (d.ig_link_count < 2)
-    s = (s ? 0 : 2);
-  else {
-    s++; s %= 3;
-  }
+  s = (s ? 0 : 2);
+  //if (d.ig_link_count < 2)
+    //s = (s ? 0 : 2);
+  //else {
+    //s++;
+    //s %= 3;
+  //}
   expand[g] = s;
   return expand[g];
 }
@@ -71,12 +79,12 @@ function network(data, prev) {
       helper_nodes = [],        // helper force graph nodes
       helper_links = [];        // helper force graph links
       helper_render_links = []; // helper force graph links
-  var k;
 
   // process previous nodes for reuse or centroid calculation
   if (prev) {
     prev.nodes.forEach(function(n) {
-      var i = getGroup(n), o;
+      var i = getGroup(n),
+          o;
 
       if (n.size > 0) {
         gn[i] = n;
@@ -85,8 +93,11 @@ function network(data, prev) {
         n.link_count = 0;
         n.first_link = null;
         n.first_link_target = null;
-      } else {
-        o = gc[i] || (gc[i] = {x: 0, y: 0, count: 0} );
+      }
+      else {
+        o = gc[i] || (gc[i] = { x: 0,
+                                y: 0,
+                                count: 0 });
         o.x += n.x;
         o.y += n.y;
         // we count regular nodes here, so .count is a measure for the number of
@@ -97,11 +108,18 @@ function network(data, prev) {
   }
 
   // determine nodes
-  for (k=0; k<data.nodes.length; ++k) {
+  for (var k = 0; k < data.nodes.length; k++) {
     var n = data.nodes[k],
         i = getGroup(n),
         expansion = expand[i] || 0,
-        l = gm[i] || (gm[i]=gn[i]) || (gm[i]={group:i, size:0, nodes:[], ig_link_count:0, link_count:0, expansion: expansion}),
+        l = gm[i] ||
+            ( gm[i] = gn[i]) ||
+            ( gm[i] = { group: i,
+                        size: 0,
+                        nodes: [],
+                        ig_link_count: 0,
+                        link_count: 0,
+                        expansion: expansion }),
         img;
 
     // we need to create a NEW object when expansion changes from 0->1 for a group node
@@ -114,7 +132,12 @@ function network(data, prev) {
     if (expansion == 2) {
       // the node should be directly visible
       nm[nodeid(n)] = n;
-      img = {ref: n, x: n.x, y: n.y, size: n.size || 0, fixed: 1, id: nodeid(n)};
+      img = { ref: n,
+              x: n.x,
+              y: n.y,
+              size: n.size || 0,
+              fixed: 1,
+              id: nodeid(n) };
       nmimg[nodeid(n)] = img;
       nodes.push(n);
       helper_nodes.push(img);
@@ -123,30 +146,42 @@ function network(data, prev) {
         n.x = gn[i].x + Math.random();
         n.y = gn[i].y + Math.random();
       }
-    } else {
+    }
+    else {
       // the node is part of a collapsed cluster
       if (l.size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
         nm[nodeid(n)] = l;
-        l.size = 1;                     // hack to make nodeid() work correctly for the new group node
+        // hack to make nodeid() work correctly for the new group node
+        l.size = 1;
         nm[nodeid(l)] = l;
-        img = {ref: l, x: l.x, y: l.y, size: l.size || 0, fixed: 1, id: nodeid(l)};
+        img = { ref: l,
+                x: l.x,
+                y: l.y,
+                size: l.size || 0,
+                fixed: 1,
+                id: nodeid(l)};
         nmimg[nodeid(l)] = img;
-        l.size = 0;                     // undo hack
+        // undo hack
+        l.size = 0;
         nmimg[nodeid(n)] = img;
         nodes.push(l);
         helper_nodes.push(img);
+
         if (gc[i]) {
           l.x = gc[i].x / gc[i].count;
           l.y = gc[i].y / gc[i].count;
         }
-      } else {
+      }
+      else {
         // have element node point to group node:
         nm[nodeid(n)] = l; // l = shortcut for: nm[nodeid(l)];
         nmimg[nodeid(n)] = nmimg[nodeid(l)];
       }
+
       l.nodes.push(n);
     }
+
     // always count group size as we also use it to tweak the force graph strengths/distances
     l.size += 1;
     n.group_data = l;
@@ -156,58 +191,106 @@ function network(data, prev) {
   }
 
   // determine links
-  for (k = 0; k < data.links.length; ++k) {
-    var e = data.links[k],
-        u = getGroup(e.source),
-        v = getGroup(e.target),
-        rui, rvi, ui, vi, lu, rv, ustate, vstate, uimg, vimg,
-        i, ix,
-        l, ll, l_, lr;
-    if (u != v) {
-      gm[u].ig_link_count++;
-      gm[v].ig_link_count++;
-    }
-    ustate = expand[u] || 0;
-    vstate = expand[v] || 0;
+  for (var j = 0; j < data.links.length; j++) {
+    var current_link = data.links[j],
+        source = getGroup(current_link.source),
+        target = getGroup(current_link.target),
+        r_current_source,
+        r_current_target,
+        current_source,
+        current_target,
+        lu,
+        rv,
+        ustate,
+        vstate,
+        uimg,
+        vimg,
+        i,
+        ix,
+        l,
+        ll,
+        l_,
+        lr;
 
-    // while d3.layout.force does convert link.source and link.target NUMERIC
+    if (source != target) {
+      gm[source].ig_link_count++;
+      gm[target].ig_link_count++;
+    }
+
+    ustate = expand[source] || 0;
+    vstate = expand[target] || 0;
+
+    // While d3.layout.force does convert link.source and link.target NUMERIC
     // values to direct node references, it doesn't for other attributes, such
     // as .real_source, so we do not use indexes in nm[] but direct node
     // references to skip the d3.layout.force implicit links conversion later
     // on and ensure that both .source/.target and .real_source/.real_target
     // are of the same type and pointing at valid nodes.
-    rui = nodeid(e.source);
-    rvi = nodeid(e.target);
-    u = nm[rui];
-    v = nm[rvi];
-    if (u == v) {
+    r_current_source = nodeid(current_link.source);
+    r_current_target = nodeid(current_link.target);
+    source = nm[r_current_source];
+    target = nm[r_current_target];
+
+    if (source == target) {
       // skip links from node to same (A-A); they are rendered as 0-length
       // lines anyhow. Less links in array = faster animation.
       continue;
     }
+
     // 'links' are produced as 3 links+2 helper nodes; this is a generalized
     // approach so we can support multiple links between element nodes and/or
     // groups, always, as each 'original link' gets its own set of 2 helper
     // nodes and thanks to the force layout those helpers will all be in
     // different places, hence the link 'path' for each parallel link will
     // be different.
-    ui = nodeid(u);
-    vi = nodeid(v);
-    i = (ui < vi ? ui+"|"+vi : vi+"|"+ui);
-    l = lm[i] || (lm[i] = {source:u, target:v, size:0, distance: 0});
+    current_source = nodeid(source);
+    current_target = nodeid(target);
+
+    //i = (current_source < current_target ? current_source+"|"+current_target : current_target+"|"+current_source);
+
+    if (current_source < current_target) {
+      i = current_source + "|" + current_target;
+    }
+    else {
+      i = current_target + "|" + current_source;
+    }
+
+    l = lm[i] || (lm[i] = { source: source,
+                            target: target,
+                            size: 0,
+                            distance: 0});
     if (ustate == 1) {
-      ui = rui;
+      current_source = r_current_source;
     }
+
     if (vstate == 1) {
-      vi = rvi;
+      current_target = r_current_target;
     }
-    ix = (ui < vi ? ui+"|"+vi+"|"+ustate+"|"+vstate : vi+"|"+ui+"|"+vstate+"|"+ustate);
-    ix = (ui < vi ? ui+"|"+vi : vi+"|"+ui);
+
+    // "source_id|target_id|source_state|target_state"
+    if (current_source < current_target) {
+      ix = current_source + "|" + current_target + "|" + ustate + "|" + vstate;
+    }
+    else {
+      ix = current_target + "|" + current_source + "|" + vstate + "|" + ustate;
+    }
+    console.log(ix);
+
     // link(u,v) ==> u -> lu -> rv -> v
-    lu = nml[ix] || (nml[ix] = data.helpers.left[ix]  || (data.helpers.left[ix]  = {ref: u, id: "_lh_" + ix, size: -1, link_ref: l}));
-    rv = nmr[ix] || (nmr[ix] = data.helpers.right[ix] || (data.helpers.right[ix] = {ref: v, id: "_rh_" + ix, size: -1, link_ref: l}));
-    uimg = nmimg[ui];
-    vimg = nmimg[vi];
+    //lu = nml[ix] ||
+        //(nml[ix] = data.helpers.left[ix]  ||
+        //(data.helpers.left[ix]  = { ref: source,
+                                    //id: "_lh_" + ix,
+                                    //size: -1,
+                                    //link_ref: l}));
+    //rv = nmr[ix] ||
+        //(nmr[ix] = data.helpers.right[ix] ||
+        //(data.helpers.right[ix] = { ref: target,
+                                    //id: "_rh_" + ix,
+                                    //size: -1,
+                                    //link_ref: l}));
+    uimg = nmimg[current_source];
+    vimg = nmimg[current_target];
     // Force 2 links helpers, left, middle, right
     //ll = lml[ix] || ( lml[ix] = { g_ref: l, ref: e, id: "l"+ix,
                       //source: uimg, target: lu, real_source: u, real_target: v,
@@ -222,12 +305,12 @@ function network(data, prev) {
     // these are only useful for single-linked nodes, but we don't care;
     // here we have everything we need at minimum cost.
     if (l.size == 1) {
-      u.link_count++;
-      v.link_count++;
-      u.first_link = l;
-      v.first_link = l;
-      u.first_link_target = v;
-      v.first_link_target = u;
+      source.link_count++;
+      target.link_count++;
+      source.first_link = l;
+      target.first_link = l;
+      source.first_link_target = target;
+      target.first_link_target = source;
     }
   }
 
@@ -266,7 +349,7 @@ function convexHulls(nodes, offset) {
 }
 
 function drawCluster(d) {
-  return curve(d.path); // 0.8
+  return curve(d.path); // 0.85
 }
 
 // these functions call init(); by declaring them here,
@@ -275,7 +358,8 @@ function drawCluster(d) {
 // this in a long-running setting.
 
 function on_hull_click(d) {
-  if (debug == 1) console.log("node click", d, arguments, this, expand[d.group]);
+  if (debug == 1)
+    console.log("node click", d, arguments, this, expand[d.group]);
   // clicking on 'path helper nodes' shouln't expand/collapse the group node:
   if (d.size < 0)
     return;
@@ -284,7 +368,8 @@ function on_hull_click(d) {
 }
 
 function on_node_click(d) {
-  if (debug == 1) console.log("node click", d, arguments, this, expand[d.group]);
+  if (debug == 1)
+    console.log("node click", d, arguments, this, expand[d.group]);
   // clicking on 'path helper nodes' shouln't expand/collapse the group node:
   if (d.size < 0)
     return;
@@ -343,17 +428,18 @@ d3.json("miserables.json", function(json) {
   data.helpers = {left: {}, right: {}};
 
   hullg = vis.append("g");
-  if (debug) {
+  //if (debug) {
     linkg = vis.append("g");
     helper_nodeg = vis.append("g");
-  }
+  //}
   helper_linkg = vis.append("g");
   nodeg = vis.append("g");
-  if (debug == 1) {
-    node = vis.append("g").append("circle")
-        .attr("class", "center-of-mass")
-        .attr("r", 10);
-  }
+  // Show the center of mass
+  //if (debug == 1) {
+    //node = vis.append("g").append("circle")
+        //.attr("class", "center-of-mass")
+        //.attr("r", 10);
+  //}
 
   init();
 
@@ -385,7 +471,11 @@ function init() {
   isn't it?
   */
 
-  var anticollision_grid = [], xquant = 1, yquant = 1, xqthresh, yqthresh;
+  var anticollision_grid = [],
+      xquant = 1,
+      yquant = 1,
+      xqthresh,
+      yqthresh;
 
   if (force) force.stop();
 
@@ -469,12 +559,15 @@ function init() {
       .links(net.helper_links)
       .size([width, height])
       .linkDistance(function(l, i) {
-        var n1 = l.real_source, n2 = l.real_target, rv,
+        var n1 = l.real_source,
+            n2 = l.real_target,
+            rv,
             lr = l.g_ref,
             n1r, n2r,
             dx, dy;
-        if (lr.source.size > 0 || lr.target.size > 0)
-          return 20;
+
+        if (lr.source.size > 0 || lr.target.size > 0) return 20;
+
         return 1;
       })
        // just a tad of gravity to help keep those curvy buttocks decent
@@ -484,7 +577,7 @@ function init() {
         // of links the related force link represents.
         // Hence bundles of links fro A->B will have helper nodes with huge
         // charges: better spreading of the link paths.
-        //
+
         // Unless we're looking at helpers for links between 'real nodes',
         // NOT GROUPS: in that case we want to keep the lines are straight as
         // possible as there would only be one relation for A->B anyway, so we
@@ -510,21 +603,19 @@ function init() {
         .attr("class", "hull")
         .attr("d", drawCluster)
         .style("fill", function(d) { return fill(d.group); })
-        .on("click", on_hull_click);
+        .on("dblclick", on_hull_click);
 
-  if (debug == 1) {
-    link = linkg.selectAll("line.link").data(net.links, linkid);
-    link.exit().remove();
-    link.enter().append("line")
-        .attr("class", "link")
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-    // both existing and enter()ed links may have changed stroke width due to
-    // expand state change somewhere:
-    link.style("stroke-width", function(d) { return d.size || 1; });
-  }
+  link = linkg.selectAll("line.link").data(net.links, linkid);
+  link.exit().remove();
+  link.enter().append("line")
+      .attr("class", "link")
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+  // both existing and enter()ed links may have changed stroke width due to
+  // expand state change somewhere:
+  link.style("stroke-width", function(d) { return d.size || 1; });
 
   hlink = helper_linkg
     .selectAll("path.hlink")
@@ -572,7 +663,7 @@ function init() {
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style("fill", function(d) { return fill(d.group); })
-      .on("click", on_node_click);
+      .on("dblclick", on_node_click);
 
   node.call(force.drag);
 
@@ -585,7 +676,8 @@ function init() {
   // but D3 doesn't inform us about that!
   node
     .on("mouseout.ger_fix", function(d) {
-      if (debug == 1) console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
+      if (debug == 1)
+        console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
       if (drag_in_progress) {
         force.resume();
       }
@@ -601,8 +693,16 @@ function init() {
     then see whether the target node for links from single-link nodes is closer to the
     center-of-mass than us, and if it isn't, we push the node outwards.
     */
-    var center = {x: 0, y: 0, weight: 0}, singles = [],
-        size, c, k, mx, my, dx, dy, alpha;
+    var center = {x: 0, y: 0, weight: 0},
+        singles = [],
+        size,
+        c,
+        k,
+        mx,
+        my,
+        dx,
+        dy,
+        alpha;
 
     drag_in_progress = false;
     net.nodes.forEach(function(n) {
@@ -685,7 +785,6 @@ function init() {
       n.x += dx;
       n.y += dy;
     });
-
 
     change_squared = 0;
 
@@ -778,12 +877,12 @@ function init() {
           .attr("d", drawCluster);
     }
 
-    if (debug == 1) {
+    //if (debug == 1) {
       link.attr("x1", function(d) { return d.source.x; })
           .attr("y1", function(d) { return d.source.y; })
           .attr("x2", function(d) { return d.target.x; })
           .attr("y2", function(d) { return d.target.y; });
-    }
+    //}
 
     node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });

@@ -3,10 +3,10 @@
   <head>
     <title>Clustered Network</title>
     <script src="http://d3js.org/d3.v2.js"></script>
-
     <style type="text/css">
       svg {
         border: 1px solid #ccc;
+        user-select: none;
       }
 
       body {
@@ -48,16 +48,26 @@
       }
 
       path.hlink {
-        stroke: #333;
+        //stroke: #333;
+        stroke: blue;
         stroke-opacity: 0.5;
         fill: none;
         pointer-events: none;
       }
 
       line.link {
+        //stroke: #555;
         stroke: red;
-        stroke-opacity: 0.7;
+        stroke-opacity: 0.5;
         pointer-events: none;
+      }
+
+      path.exapnded {
+        stroke-opacity: 0.75;
+      }
+
+      path.not-expanded {
+        stroke-opacity: 0.2;
       }
 
     </style>
