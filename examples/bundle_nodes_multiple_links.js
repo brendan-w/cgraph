@@ -68,12 +68,15 @@ function network(data, prev_network) {
 
   // process previous nodes for reuse or centroid calculation
   if (prev_network) {
-    reuse_network(prev_network, node_group, centroid_group);
+    reuse = reuse_network(prev_network, node_group, centroid_group);
+    node_group = reuse.ng;
+    centroid_group = reuse.cg;
   }
 
-  determine_nodes(data, node_map, group_map, node_group, centroid_group, nodes);
+  nodes = determine_nodes(data.nodes, node_map, group_map,
+                          node_group, centroid_group, nodes);
 
-  determine_links(data, node_map, group_map, link_map);
+  determine_links(data.links, node_map, group_map, link_map);
 
   for (var link_iter in link_map) {
     links.push(link_map[link_iter]);
@@ -108,13 +111,12 @@ function reuse_network(prev_network, node_group, centroid_group) {
     }
   });
 
-  return node_group, centroid_group;
+  return { ng: node_group, cg: centroid_group };
 }
 
-function determine_nodes(data, node_map, group_map, node_group, centroid_group, nodes) {
-  for (var k = 0; k < data.nodes.length; k++) {
-    var node = data.nodes[k],
-        group_id = getGroup(node),
+function determine_nodes(nodes, node_map, group_map, node_group, centroid_group, output_nodes) {
+  nodes.forEach(function(node, k) {
+    var group_id = getGroup(node),
         expansion = expand[group_id] || 0,
         l = group_map[group_id] ||
            (group_map[group_id] = node_group[group_id]) ||
@@ -124,27 +126,12 @@ function determine_nodes(data, node_map, group_map, node_group, centroid_group, 
                                           ig_link_count: 0,
                                           link_count: 0,
                                           expansion: expansion });
-
-    // we need to create a NEW object when expansion changes from 0->1 for a group node
-    // in order to break the references from the d3 selections, so that the next time
-    // this group node will indeed land in the 'enter()' set
-    if (l.expansion != expansion) {
-      l =
-      node_group[group_id] =
-      group_map[group_id] = { group: l.group,
-                              x: l.x,
-                              y: l.y,
-                              size: l.size,
-                              nodes: l.nodes,
-                              ig_link_count: l.ig_link_count,
-                              link_count: l.link_count,
-                              expansion: expansion };
-    }
+    console.log(l);
 
     if (expansion) {
       // the node should be directly visible
       node_map[nodeid(node)] = node;
-      nodes.push(node);
+      output_nodes.push(node);
 
       if (node_group[group_id]) {
         // place new nodes at cluster location (plus jitter)
@@ -163,7 +150,7 @@ function determine_nodes(data, node_map, group_map, node_group, centroid_group, 
 
         // undo hack
         l.size = 0;
-        nodes.push(l);
+        output_nodes.push(l);
 
         if (centroid_group[group_id]) {
           l.x = centroid_group[group_id].x / centroid_group[group_id].count;
@@ -174,7 +161,6 @@ function determine_nodes(data, node_map, group_map, node_group, centroid_group, 
         // have element node point to group node:
         node_map[nodeid(node)] = l; // l = shortcut for: node_map[nodeid(l)];
       }
-
       l.nodes.push(node);
     }
 
@@ -185,13 +171,16 @@ function determine_nodes(data, node_map, group_map, node_group, centroid_group, 
     node.link_count = 0;
     node.first_link = null;
     node.first_link_target = null;
-  }
+  });
+
+  return output_nodes;
 }
 
-function determine_links(data, node_map, group_map, link_map) {
-  for (var j = 0; j < data.links.length; j++) {
-    var current_link = data.links[j],
-        source = getGroup(current_link.source),
+function determine_links(links, node_map, group_map, link_map) {
+  links.forEach(function(current_link, j) {
+  //for (var j = 0; j < data.links.length; j++) {
+    //var current_link = data.links[j],
+    var source = getGroup(current_link.source),
         target = getGroup(current_link.target),
         real_current_source,
         real_current_target,
@@ -218,16 +207,8 @@ function determine_links(data, node_map, group_map, link_map) {
 
     // skip links from node to same (A-A); they are rendered as 0-length
     // lines anyhow. Less links in array = faster animation.
-    if (source == target) {
-      continue;
-    }
+    if (source == target) return;
 
-    // 'links' are produced as 3 links+2 helper nodes; this is a generalized
-    // approach so we can support multiple links between element nodes and/or
-    // groups, always, as each 'original link' gets its own set of 2 helper
-    // nodes and thanks to the force layout those helpers will all be in
-    // different places, hence the link 'path' for each parallel link will
-    // be different.
     current_source = nodeid(source);
     current_target = nodeid(target);
 
@@ -238,9 +219,9 @@ function determine_links(data, node_map, group_map, link_map) {
 
     link = link_map[link_map_key] ||
           (link_map[link_map_key] = { source: source,
-                                target: target,
-                                size: 0,
-                                distance: 0});
+                                      target: target,
+                                      size: 0,
+                                      distance: 0});
     link.size += 1;
 
     // these are only useful for single-linked nodes, but we don't care;
@@ -253,9 +234,8 @@ function determine_links(data, node_map, group_map, link_map) {
       source.first_link_target = target;
       target.first_link_target = source;
     }
-  }
+  });
 }
-
 
 function convexHulls(nodes, offset) {
   var hulls = {};
@@ -395,64 +375,75 @@ function init() {
   net = network(data, net);
 
   force = d3.layout.force()
-      .nodes(net.nodes)
-      .links(net.links)
-      .size([width, height])
-      .linkDistance(function(l, i) {
-        //return 300;
-        var n1 = l.source, n2 = l.target,
-            g1 = n1.group_data || n1, g2 = n2.group_data || n2,
-            n1_is_group = n1.size || 0, n2_is_group = n2.size || 0,
-            rv = 300;
-        // larger distance for bigger groups:
-        // both between single nodes and _other_ groups (where size of own node
-        // group still counts), and between two group nodes.
-        //
-        // reduce distance for groups with very few outer links,
-        // again both in expanded and grouped form, i.e. between individual
-        // nodes of a group and nodes of another group or other group node or
-        // between two group nodes.
+    .nodes(net.nodes)
+    .links(net.links)
+    .size([width, height])
+    .linkDistance(function(link, i) {
+      var n1 = link.source,
+          n2 = link.target,
+          g1 = n1.group_data || n1,
+          g2 = n2.group_data || n2,
+          n1_is_group = n1.size || 0,
+          n2_is_group = n2.size || 0,
+          rv = 300;
 
-        // The latter was done to keep the single-link groups close.
-        if (n1.group == n2.group) {
-          if ((n1.link_count < 2 && !n1_is_group) || (n2.link_count < 2 && !n2_is_group)) {
-            // 'real node' singles: these don't need a big distance to make the
-            // distance, if you whumsayin' ;-)
-            rv = 2;
-          } else if (!n1_is_group && !n2_is_group) {
-            rv = 2;
-          } else if (g1.link_count < 4 || g2.link_count < 4) {
-            rv = 100;
-          }
-        } else {
-          if (!n1_is_group && !n2_is_group) {
-            rv = 50;
-          } else if ((n1_is_group && n2_is_group) && (g1.link_count < 4 || g2.link_count < 4)) {
-            // 'real node' singles: these don't need a big distance to make the ditance, if you whumsayin' ;-)
-            rv = 100;
-          } else if ((n1_is_group && g1.link_count < 2) || (n2_is_group && g2.link_count < 2)) {
-            // 'real node' singles: these don't need a big distance to make the ditance, if you whumsayin' ;-)
-            rv = 30;
-          } else if (!n1_is_group || !n2_is_group) {
+      // larger distance for bigger groups:
+      // both between single nodes and _other_ groups (where size of own node
+      // group still counts), and between two group nodes.
+      //
+      // reduce distance for groups with very few outer links,
+      // again both in expanded and grouped form, i.e. between individual
+      // nodes of a group and nodes of another group or other group node or
+      // between two group nodes.
+
+      // The latter was done to keep the single-link groups close.
+      if (n1.group == n2.group) {
+        if ((n1.link_count < 2 && !n1_is_group) || (n2.link_count < 2 && !n2_is_group)) {
+          // 'real node' singles: don't need big distance to make the distance
+          rv = 2;
+        }
+        else if (!n1_is_group && !n2_is_group) {
+          rv = 2;
+        }
+        else if (g1.link_count < 4 || g2.link_count < 4) {
+          rv = 100;
+        }
+      }
+      else {
+        if (!n1_is_group && !n2_is_group) {
+          rv = 50;
+        }
+        else if (n1_is_group && n2_is_group ) {
+          if (g1.link_count < 4 || g2.link_count < 4) {
             rv = 100;
           }
         }
-        l.distance = rv;
-        return l.distance;
-      })
-      .gravity(1.0)             // gravity+charge tweaked to ensure good 'grouped' view (e.g. green group not smack between blue&orange, ...
-      .charge(function(d, i) {  // ... charge is important to turn single-linked groups to the outside
-        if (d.size > 0) {
-          return -5000;  // group node
-        } else {
-          // 'regular node'
-          return -1000;
+        else if ((n1_is_group && g1.link_count < 2) ||
+                ( n2_is_group && g2.link_count < 2)) {
+          rv = 30;
         }
-      })
-       // friction adjusted to get dampened display:
-       // less bouncy bouncy ball [Swedish Chef, anyone?]
-      .friction(0.7)
-      .start();
+        else if (!n1_is_group || !n2_is_group) {
+          rv = 100;
+        }
+      }
+      link.distance = rv;
+      return link.distance;
+    })
+    // Gravity & charge tweaked to separate the clusters
+    .gravity(1.0)
+    // Charge is important to turn single-linked groups to the outside
+    .charge(function(d, i) {
+      if (d.size > 3) {
+        return -5000;  // group node
+      } else {
+        // 'regular node'
+        return -1000;
+      }
+    })
+     // friction adjusted to get dampened display:
+     // less bouncy bouncy ball [Swedish Chef, anyone?]
+    .friction(0.7)
+    .start();
 
   hullg.selectAll("path.hull").remove();
   hull = hullg.selectAll("path.hull")
