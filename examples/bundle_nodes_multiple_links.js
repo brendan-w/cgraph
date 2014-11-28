@@ -50,122 +50,129 @@ function cycleState(d) {
   var g = d.group,
       s = expand[g] || 0;
 
-  s = s ? 0 : 2;
+  s = s ? false : true;
   expand[g] = s;
   return expand[g];
 }
-
 // constructs the network to visualize
-function network(data, prev) {
+function network(data, prev_network) {
   expand = expand || {};
-  var group_map = {},    // group map
-      nm = {},    // node map
-      lm = {},    // link maps
-      gn = {},    // previous group nodes
-      gc = {},    // previous group centroids
-      nodes = [], // output nodes
-      links = []; // output links
+  var group_map = {},
+      node_map = {},
+      link_map = {},
+      node_group = {},
+      centroid_group = {},
+      // Output
+      nodes = [],
+      links = [];
 
   // process previous nodes for reuse or centroid calculation
-  if (prev) {
-    prev.nodes.forEach(function(node) {
-      var i = getGroup(node),
-          o;
-
-      if (node.size > 0) {
-        gn[i] = node;
-        node.size = 0;
-        node.ig_link_count = 0;
-        node.link_count = 0;
-        node.first_link = null;
-        node.first_link_target = null;
-      }
-      else {
-        o = gc[i] || (gc[i] = { x: 0,
-                                y: 0,
-                                count: 0 });
-        o.x += node.x;
-        o.y += node.y;
-        // we count regular nodes here, so .count is a measure for the number of
-        // nodes in the group
-        o.count += 1;
-      }
-    });
+  if (prev_network) {
+    reuse_network(prev_network, node_group, centroid_group);
   }
 
-  // determine nodes
+  determine_nodes(data, node_map, group_map, node_group, centroid_group, nodes);
+
+  determine_links(data, node_map, group_map, link_map);
+
+  for (var link_iter in link_map) {
+    links.push(link_map[link_iter]);
+  }
+
+  return { nodes: nodes,
+           links: links };
+}
+
+function reuse_network(prev_network, node_group, centroid_group) {
+  prev_network.nodes.forEach(function(node) {
+    var group_id = getGroup(node),
+        link;
+
+    if (node.size > 0) {
+      node_group[group_id] = node;
+      node.size = 0;
+      node.ig_link_count = 0;
+      node.link_count = 0;
+      node.first_link = null;
+      node.first_link_target = null;
+    }
+    else {
+      link = centroid_group[group_id] ||
+            (centroid_group[group_id] = { x: 0, y: 0, count: 0 });
+
+      link.x += node.x;
+      link.y += node.y;
+      // we count regular nodes here, so .count is a measure for the number of
+      // nodes in the group
+      link.count += 1;
+    }
+  });
+
+  return node_group, centroid_group;
+}
+
+function determine_nodes(data, node_map, group_map, node_group, centroid_group, nodes) {
   for (var k = 0; k < data.nodes.length; k++) {
     var node = data.nodes[k],
-        i = getGroup(node),
-        expansion = expand[i] || 0,
-        l = group_map[i] ||
-            ( group_map[i] = gn[i]) ||
-            ( group_map[i] = { group: i,
-                        size: 0,
-                        nodes: [],
-                        ig_link_count: 0,
-                        link_count: 0,
-                        expansion: expansion }),
-        img;
+        group_id = getGroup(node),
+        expansion = expand[group_id] || 0,
+        l = group_map[group_id] ||
+           (group_map[group_id] = node_group[group_id]) ||
+           (group_map[group_id] = {group: group_id,
+                                          size: 0,
+                                          nodes: [],
+                                          ig_link_count: 0,
+                                          link_count: 0,
+                                          expansion: expansion });
 
     // we need to create a NEW object when expansion changes from 0->1 for a group node
     // in order to break the references from the d3 selections, so that the next time
     // this group node will indeed land in the 'enter()' set
     if (l.expansion != expansion) {
-      l = gn[i] = group_map[i] = { group: l.group,
-                            x: l.x,
-                            y: l.y,
-                            size: l.size,
-                            nodes: l.nodes,
-                            ig_link_count: l.ig_link_count,
-                            link_count: l.link_count,
-                            expansion: expansion };
+      l =
+      node_group[group_id] =
+      group_map[group_id] = { group: l.group,
+                              x: l.x,
+                              y: l.y,
+                              size: l.size,
+                              nodes: l.nodes,
+                              ig_link_count: l.ig_link_count,
+                              link_count: l.link_count,
+                              expansion: expansion };
     }
 
-    if (expansion == 2) {
+    if (expansion) {
       // the node should be directly visible
-      nm[nodeid(node)] = node;
-      img = { ref: node,
-              x: node.x,
-              y: node.y,
-              size: node.size || 0,
-              fixed: 1,
-              id: nodeid(node) };
+      node_map[nodeid(node)] = node;
       nodes.push(node);
 
-      if (gn[i]) {
+      if (node_group[group_id]) {
         // place new nodes at cluster location (plus jitter)
-        node.x = gn[i].x + Math.random();
-        node.y = gn[i].y + Math.random();
+        node.x = node_group[group_id].x + Math.random();
+        node.y = node_group[group_id].y + Math.random();
       }
     }
     else {
       // the node is part of a collapsed cluster
       if (l.size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
-        nm[nodeid(node)] = l;
+        node_map[nodeid(node)] = l;
         // hack to make nodeid() work correctly for the new group node
         l.size = 1;
-        nm[nodeid(l)] = l;
-        img = { ref: l,
-                x: l.x,
-                y: l.y,
-                size: l.size || 0,
-                fixed: 1,
-                id: nodeid(l)};
+        node_map[nodeid(l)] = l;
 
         // undo hack
         l.size = 0;
         nodes.push(l);
 
-        if (gc[i]) {
-          l.x = gc[i].x / gc[i].count;
-          l.y = gc[i].y / gc[i].count;
+        if (centroid_group[group_id]) {
+          l.x = centroid_group[group_id].x / centroid_group[group_id].count;
+          l.y = centroid_group[group_id].y / centroid_group[group_id].count;
         }
       }
       else {
         // have element node point to group node:
-        nm[nodeid(node)] = l; // l = shortcut for: nm[nodeid(l)];
+        node_map[nodeid(node)] = l; // l = shortcut for: node_map[nodeid(l)];
       }
 
       l.nodes.push(node);
@@ -179,8 +186,9 @@ function network(data, prev) {
     node.first_link = null;
     node.first_link_target = null;
   }
+}
 
-  // determine links
+function determine_links(data, node_map, group_map, link_map) {
   for (var j = 0; j < data.links.length; j++) {
     var current_link = data.links[j],
         source = getGroup(current_link.source),
@@ -189,8 +197,6 @@ function network(data, prev) {
         real_current_target,
         current_source,
         current_target,
-        lu,
-        rv,
         link_map_key,
         link;
 
@@ -201,14 +207,14 @@ function network(data, prev) {
 
     // While d3.layout.force does convert link.source and link.target NUMERIC
     // values to direct node references, it doesn't for other attributes, such
-    // as .real_source, so we do not use indexes in nm[] but direct node
+    // as .real_source, so we do not use indexes in node_map[] but direct node
     // references to skip the d3.layout.force implicit links conversion later
     // on and ensure that both .source/.target and .real_source/.real_target
     // are of the same type and pointing at valid nodes.
     real_current_source = nodeid(current_link.source);
     real_current_target = nodeid(current_link.target);
-    source = nm[real_current_source];
-    target = nm[real_current_target];
+    source = node_map[real_current_source];
+    target = node_map[real_current_target];
 
     // skip links from node to same (A-A); they are rendered as 0-length
     // lines anyhow. Less links in array = faster animation.
@@ -230,8 +236,8 @@ function network(data, prev) {
     else
       link_map_key = current_target + "|" + current_source;
 
-    link = lm[link_map_key] ||
-          (lm[link_map_key] = { source: source,
+    link = link_map[link_map_key] ||
+          (link_map[link_map_key] = { source: source,
                                 target: target,
                                 size: 0,
                                 distance: 0});
@@ -248,15 +254,8 @@ function network(data, prev) {
       target.first_link_target = source;
     }
   }
-
-  for (var link_iter in lm) {
-    links.push(lm[link_iter]);
-  }
-
-  return { nodes: nodes,
-           links: links
-  };
 }
+
 
 function convexHulls(nodes, offset) {
   var hulls = {};
