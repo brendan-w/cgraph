@@ -6,17 +6,12 @@ var width = 960,        // svg width
     data,
     net,
     force,
-    force2,
     hullg,
     hull,
     linkg,
-    helper_linkg,
     link,
-    hlink,
     nodeg,
-    helper_nodeg,
     node,
-    hnode,
     debug = 0; // 0: disable, 1: all, 2: only force2
 
 var curve = d3.svg.line()
@@ -26,36 +21,36 @@ var curve = d3.svg.line()
 
 var fill = d3.scale.category20();
 
-function nodeid(n) {
-  if (n.size > 0) {
-    // e.g. "_g_10_1"
+function nodeid(node) {
+  if (node.size > 0) {
     //console.log(n.size > 0 ? "_g_" + n.group + "_" + n.expansion : n.name);
-    return "_g_" + n.group + "_" + n.expansion;
+    // e.g. "_g_10_1"
+    return "_g_" + node.group + "_" + node.expansion;
   }
   else {
-    return n.name;
+    return node.name;
   }
 }
 
-function linkid(l) {
-  var u = nodeid(l.source),
-      v = nodeid(l.target);
-  return u<v ? u+"|"+v : v+"|"+u;
+function linkid(link) {
+  var source = nodeid(link.source),
+      target = nodeid(link.target);
+
+  if (source < target)
+    return source + "|" + target;
+  else
+    return source + "|" + target;
 }
 
-function getGroup(n) { return n.group; }
+function getGroup(node) {
+  return node.group;
+}
 
 function cycleState(d) {
-  var g = d.group, s = expand[g] || 0;
-  // it's no use 'expanding the intergroup links only' for nodes which only
-  // have 1 outside link for real:
-  s = (s ? 0 : 2);
-  //if (d.ig_link_count < 2)
-    //s = (s ? 0 : 2);
-  //else {
-    //s++;
-    //s %= 3;
-  //}
+  var g = d.group,
+      s = expand[g] || 0;
+
+  s = s ? 0 : 2;
   expand[g] = s;
   return expand[g];
 }
@@ -63,10 +58,9 @@ function cycleState(d) {
 // constructs the network to visualize
 function network(data, prev) {
   expand = expand || {};
-  var gm = {},    // group map
+  var group_map = {},    // group map
       nm = {},    // node map
-      nmimg = {}, // node map for cloned nodes for force2
-      lm = {},    // link maps - lm ~ lml-lmm-lmr
+      lm = {},    // link maps
       gn = {},    // previous group nodes
       gc = {},    // previous group centroids
       nodes = [], // output nodes
@@ -74,24 +68,24 @@ function network(data, prev) {
 
   // process previous nodes for reuse or centroid calculation
   if (prev) {
-    prev.nodes.forEach(function(n) {
-      var i = getGroup(n),
+    prev.nodes.forEach(function(node) {
+      var i = getGroup(node),
           o;
 
-      if (n.size > 0) {
-        gn[i] = n;
-        n.size = 0;
-        n.ig_link_count = 0;
-        n.link_count = 0;
-        n.first_link = null;
-        n.first_link_target = null;
+      if (node.size > 0) {
+        gn[i] = node;
+        node.size = 0;
+        node.ig_link_count = 0;
+        node.link_count = 0;
+        node.first_link = null;
+        node.first_link_target = null;
       }
       else {
         o = gc[i] || (gc[i] = { x: 0,
                                 y: 0,
                                 count: 0 });
-        o.x += n.x;
-        o.y += n.y;
+        o.x += node.x;
+        o.y += node.y;
         // we count regular nodes here, so .count is a measure for the number of
         // nodes in the group
         o.count += 1;
@@ -101,12 +95,12 @@ function network(data, prev) {
 
   // determine nodes
   for (var k = 0; k < data.nodes.length; k++) {
-    var n = data.nodes[k],
-        i = getGroup(n),
+    var node = data.nodes[k],
+        i = getGroup(node),
         expansion = expand[i] || 0,
-        l = gm[i] ||
-            ( gm[i] = gn[i]) ||
-            ( gm[i] = { group: i,
+        l = group_map[i] ||
+            ( group_map[i] = gn[i]) ||
+            ( group_map[i] = { group: i,
                         size: 0,
                         nodes: [],
                         ig_link_count: 0,
@@ -118,32 +112,38 @@ function network(data, prev) {
     // in order to break the references from the d3 selections, so that the next time
     // this group node will indeed land in the 'enter()' set
     if (l.expansion != expansion) {
-      l = gn[i] = gm[i] = {group:l.group, x:l.x, y: l.y, size:l.size, nodes:l.nodes, ig_link_count:l.ig_link_count, link_count:l.link_count, expansion: expansion};
+      l = gn[i] = group_map[i] = { group: l.group,
+                            x: l.x,
+                            y: l.y,
+                            size: l.size,
+                            nodes: l.nodes,
+                            ig_link_count: l.ig_link_count,
+                            link_count: l.link_count,
+                            expansion: expansion };
     }
 
     if (expansion == 2) {
       // the node should be directly visible
-      nm[nodeid(n)] = n;
-      img = { ref: n,
-              x: n.x,
-              y: n.y,
-              size: n.size || 0,
+      nm[nodeid(node)] = node;
+      img = { ref: node,
+              x: node.x,
+              y: node.y,
+              size: node.size || 0,
               fixed: 1,
-              id: nodeid(n) };
-      nmimg[nodeid(n)] = img;
-      nodes.push(n);
-      //helper_nodes.push(img);
+              id: nodeid(node) };
+      nodes.push(node);
+
       if (gn[i]) {
         // place new nodes at cluster location (plus jitter)
-        n.x = gn[i].x + Math.random();
-        n.y = gn[i].y + Math.random();
+        node.x = gn[i].x + Math.random();
+        node.y = gn[i].y + Math.random();
       }
     }
     else {
       // the node is part of a collapsed cluster
       if (l.size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
-        nm[nodeid(n)] = l;
+        nm[nodeid(node)] = l;
         // hack to make nodeid() work correctly for the new group node
         l.size = 1;
         nm[nodeid(l)] = l;
@@ -153,12 +153,10 @@ function network(data, prev) {
                 size: l.size || 0,
                 fixed: 1,
                 id: nodeid(l)};
-        nmimg[nodeid(l)] = img;
+
         // undo hack
         l.size = 0;
-        nmimg[nodeid(n)] = img;
         nodes.push(l);
-        //helper_nodes.push(img);
 
         if (gc[i]) {
           l.x = gc[i].x / gc[i].count;
@@ -167,19 +165,19 @@ function network(data, prev) {
       }
       else {
         // have element node point to group node:
-        nm[nodeid(n)] = l; // l = shortcut for: nm[nodeid(l)];
-        nmimg[nodeid(n)] = nmimg[nodeid(l)];
+        nm[nodeid(node)] = l; // l = shortcut for: nm[nodeid(l)];
       }
 
-      l.nodes.push(n);
+      l.nodes.push(node);
     }
 
-    // always count group size as we also use it to tweak the force graph strengths/distances
+    // always count group size as we also use it to tweak the force graph
+    // strengths/distances
     l.size += 1;
-    n.group_data = l;
-    n.link_count = 0;
-    n.first_link = null;
-    n.first_link_target = null;
+    node.group_data = l;
+    node.link_count = 0;
+    node.first_link = null;
+    node.first_link_target = null;
   }
 
   // determine links
@@ -197,8 +195,8 @@ function network(data, prev) {
         link;
 
     if (source != target) {
-      gm[source].ig_link_count++;
-      gm[target].ig_link_count++;
+      group_map[source].ig_link_count++;
+      group_map[target].ig_link_count++;
     }
 
     // While d3.layout.force does convert link.source and link.target NUMERIC
@@ -212,9 +210,9 @@ function network(data, prev) {
     source = nm[real_current_source];
     target = nm[real_current_target];
 
+    // skip links from node to same (A-A); they are rendered as 0-length
+    // lines anyhow. Less links in array = faster animation.
     if (source == target) {
-      // skip links from node to same (A-A); they are rendered as 0-length
-      // lines anyhow. Less links in array = faster animation.
       continue;
     }
 
@@ -264,11 +262,12 @@ function convexHulls(nodes, offset) {
   var hulls = {};
 
   // create point sets
-  for (var k=0; k<nodes.length; ++k) {
+  for (var k = 0; k < nodes.length; k++) {
     var n = nodes[k];
     if (n.size) continue;
     var i = getGroup(n),
         l = hulls[i] || (hulls[i] = []);
+
     l.push([n.x-offset, n.y-offset]);
     l.push([n.x-offset, n.y+offset]);
     l.push([n.x+offset, n.y-offset]);
@@ -278,7 +277,8 @@ function convexHulls(nodes, offset) {
   // create convex hulls
   var hullset = [];
   for (var j in hulls) {
-    hullset.push({group: j, path: d3.geom.hull(hulls[j])});
+    hullset.push({ group: j,
+                   path: d3.geom.hull(hulls[j]) });
   }
 
   return hullset;
@@ -292,23 +292,9 @@ function drawCluster(d) {
 // they don't have the old init() as a closure any more.
 // This should save us some memory and cycles when using
 // this in a long-running setting.
-
-function on_hull_click(d) {
-  if (debug == 1)
-    console.log("node click", d, arguments, this, expand[d.group]);
-  // clicking on 'path helper nodes' shouln't expand/collapse the group node:
-  if (d.size < 0)
-    return;
-  cycleState(d);
-  init();
-}
-
 function on_node_click(d) {
   if (debug == 1)
     console.log("node click", d, arguments, this, expand[d.group]);
-  // clicking on 'path helper nodes' shouln't expand/collapse the group node:
-  if (d.size < 0)
-    return;
   cycleState(d);
   init();
 }
@@ -476,7 +462,7 @@ function init() {
         .attr("class", "hull")
         .attr("d", drawCluster)
         .style("fill", function(d) { return fill(d.group); })
-        .on("dblclick", on_hull_click);
+        .on("dblclick", on_node_click);
 
   link = linkg.selectAll("line.link").data(net.links, linkid);
   link.exit().remove();
@@ -598,9 +584,14 @@ function init() {
       // 'non-singles' a little bit of the same 'push out' treatment. Reduce
       // effect for 'real nodes' which are singles:
       // they need much less encouragement!
-      power = Math.max(2, n_is_group ? n.link_count : n.group_data.link_count);
-      power = 2 / power;
+      if (n_is_group) {
+        power = Math.max(2, n.link_count);
+      }
+      else {
+        power = Math.max(2, n.group_data.link_count);
+      }
 
+      power = 2 / power;
       alpha = e.alpha * power;
 
       // undo/revert gravity forces (or as near as we can get, here)
@@ -609,7 +600,7 @@ function init() {
       // only reduce ever so slightly for nodes with few links (~ 3) that made
       // it into this 'singles' selection
       k = alpha * force.gravity() * (0.8 + power);
-      console.log(k);
+
       if (k) {
         dx = (mx - n.x) * k;
         dy = (my - n.y) * k;
@@ -688,20 +679,31 @@ function init() {
 
     // fast stop + the drag fix, part 2:
     if (change_squared < 0.005) {
-      if (debug == 1) console.log("fast stop: CPU load redux");
+
+      if (debug == 1)
+        console.log("fast stop: CPU load redux");
       force.stop();
+
       // fix part 4: monitor D3 resetting the drag marker:
       if (drag_in_progress) {
-        if (debug == 1) console.log("START monitor drag in progress", drag_in_progress);
+
+        if (debug == 1)
+          console.log("START monitor drag in progress", drag_in_progress);
+
         d3.timer(function() {
           drag_in_progress = false;
           net.nodes.forEach(function(n) {
+
             if (n.fixed & 2) {
               drag_in_progress = true;
             }
           });
+
           force.resume();
-          if (debug == 1) console.log("monitor drag in progress: drag ENDED", drag_in_progress);
+
+          if (debug == 1)
+            console.log("monitor drag in progress: drag ENDED", drag_in_progress);
+
           // Quit monitoring as soon as we noticed the drag ENDED.
           // Note: we continue to monitor at +500ms intervals beyond the last tick
           //       as this timer function ALWAYS kickstarts the force layout again
@@ -712,12 +714,18 @@ function init() {
           return true;
         }, 500);
       }
-    } else if (change_squared > net.nodes.length * 5 && e.alpha < resume_threshold) {
-      // jolt the alpha (and the visual) when there's still a lot of change when we hit the alpha threshold.
-      force.alpha(Math.min(0.1, e.alpha *= 2)); //force.resume(), but now with decreasing alpha starting value so the jolts don't get so big.
+    }
+    else if ( change_squared > net.nodes.length * 5 &&
+              e.alpha < resume_threshold) {
+      // jolt the alpha (and the visual) when there's still a lot of change
+      // when we hit the alpha threshold.
+      force.alpha(Math.min(0.1, e.alpha *= 2));
+      // force.resume(), but now with decreasing alpha starting value so the
+      // jolts don't get so big.
 
-      // And 'dampen out' the trigger point, so it becomes harder and harder to trigger the threshold.
-      // This is done to cope with those instable (forever rotating, etc.) layouts...
+      // And 'dampen out' the trigger point, so it becomes harder and harder to
+      // trigger the threshold. This is done to cope with those instable
+      // (forever rotating, etc.) layouts...
       resume_threshold *= 0.9;
     }
 
@@ -728,12 +736,10 @@ function init() {
           .attr("d", drawCluster);
     }
 
-    //if (debug == 1) {
-      link.attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; });
-    //}
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
 
     node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
