@@ -90,7 +90,7 @@ function network(data) {
   for (var link_iter in link_map) {
     links.push(link_map[link_iter]);
   }
-  
+
   console.log({ nodes: nodes, links: links });
 
   return { nodes: nodes,
