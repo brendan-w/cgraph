@@ -1,4 +1,4 @@
-var width = 960,        // svg width
+var //width = 300,        // svg width
     height = 600,       // svg height
     dr = 4,             // default point radius
     off = 15,           // cluster hull offset
@@ -54,8 +54,27 @@ function cycleState(d) {
   expand[g] = s;
   return expand[g];
 }
+
 // constructs the network to visualize
 function network(data, prev_network) {
+  function checkNetworkState() {
+    console.log("");
+    console.log("Group Map");
+    console.log(group_map);
+
+    console.log("Node Map");
+    console.log(node_map);
+
+    console.log("Link Map");
+    console.log(link_map);
+
+    console.log("Node Group");
+    console.log(node_group);
+
+    console.log("Centroid Group");
+    console.log(centroid_group);
+  }
+
   expand = expand || {};
   var group_map = {},
       node_map = {},
@@ -76,7 +95,9 @@ function network(data, prev_network) {
   nodes = determine_nodes(data.nodes, node_map, group_map,
                           node_group, centroid_group, nodes);
 
+
   determine_links(data.links, node_map, group_map, link_map);
+  checkNetworkState();
 
   for (var link_iter in link_map) {
     links.push(link_map[link_iter]);
@@ -126,7 +147,7 @@ function determine_nodes(nodes, node_map, group_map, node_group, centroid_group,
                                           ig_link_count: 0,
                                           link_count: 0,
                                           expansion: expansion });
-    console.log(l);
+    //console.log(l);
 
     if (expansion) {
       // the node should be directly visible
@@ -283,9 +304,10 @@ function on_node_click(d) {
 var body = d3.select("body");
 
 var vis = body.append("svg")
-   .attr("width", width)
+   //.attr("width", width)
    .attr("height", height);
 
+      console.log(vis[0][0].offsetWidth);
 var pathgen = d3.svg.line().interpolate("basis");
 
 d3.json("miserables.json", function(json) {
@@ -320,19 +342,19 @@ d3.json("miserables.json", function(json) {
   }
   */
   data = json;
-  for (var i=0; i<data.links.length; ++i) {
+  for (var i = 0; i < data.links.length; i++) {
     o = data.links[i];
     o.source = data.nodes[o.source];
     o.target = data.nodes[o.target];
   }
   // prepare data struct to also carry our 'path helper nodes':
-  data.helpers = {left: {}, right: {}};
+  //data.helpers = {left: {}, right: {}};
 
   hullg = vis.append("g");
   linkg = vis.append("g");
-  helper_nodeg = vis.append("g");
-  helper_linkg = vis.append("g");
   nodeg = vis.append("g");
+  //helper_nodeg = vis.append("g");
+  //helper_linkg = vis.append("g");
 
   init();
 
@@ -385,12 +407,12 @@ function init() {
           g2 = n2.group_data || n2,
           n1_is_group = n1.size || 0,
           n2_is_group = n2.size || 0,
-          rv = 300;
+          link_dist = 300;
 
       // larger distance for bigger groups:
       // both between single nodes and _other_ groups (where size of own node
       // group still counts), and between two group nodes.
-      //
+
       // reduce distance for groups with very few outer links,
       // again both in expanded and grouped form, i.e. between individual
       // nodes of a group and nodes of another group or other group node or
@@ -400,33 +422,33 @@ function init() {
       if (n1.group == n2.group) {
         if ((n1.link_count < 2 && !n1_is_group) || (n2.link_count < 2 && !n2_is_group)) {
           // 'real node' singles: don't need big distance to make the distance
-          rv = 2;
+          link_dist = 2;
         }
         else if (!n1_is_group && !n2_is_group) {
-          rv = 2;
+          link_dist = 2;
         }
         else if (g1.link_count < 4 || g2.link_count < 4) {
-          rv = 100;
+          link_dist = 100;
         }
       }
       else {
         if (!n1_is_group && !n2_is_group) {
-          rv = 50;
+          link_dist = 50;
         }
         else if (n1_is_group && n2_is_group ) {
           if (g1.link_count < 4 || g2.link_count < 4) {
-            rv = 100;
+            link_dist = 100;
           }
         }
         else if ((n1_is_group && g1.link_count < 2) ||
                 ( n2_is_group && g2.link_count < 2)) {
-          rv = 30;
+          link_dist = 30;
         }
         else if (!n1_is_group || !n2_is_group) {
-          rv = 100;
+          link_dist = 100;
         }
       }
-      link.distance = rv;
+      link.distance = link_dist;
       return link.distance;
     })
     // Gravity & charge tweaked to separate the clusters
@@ -547,22 +569,15 @@ function init() {
     singles.forEach(function(n) {
       var l = n.first_link,
           n2 = n.first_link_target,
-          proj,
-          ax,
-          bx,
-          ay,
-          by,
           k,
           x,
           y,
           alpha,
-          rej,
           power,
           dx,
           dy,
           n_is_group = n.size || 0,
           ng = n.group_data || n,
-          c2,
           w = Math.max(1, n.size || 0, n.weight || 0);
 
       // haven't decided what to do for unconnected nodes, yet...
@@ -602,15 +617,9 @@ function init() {
       }
     });
 
-    // move the entire graph so that its center of mass sits at the center, period.
+    // move the entire graph so that its center of mass sits at the center
     center.x /= center.weight;
     center.y /= center.weight;
-
-    if (debug == 1) {
-      c = vis.selectAll("circle.center-of-mass")
-          .attr("cx", center.x)
-          .attr("cy", center.y);
-    }
 
     dx = mx - center.x;
     dy = my - center.y;
@@ -630,8 +639,11 @@ function init() {
     // force.tick() would expect .px and .py to be the .x and .y of yesterday.
     net.nodes.forEach(function(n) {
       // restrain all nodes to window area
-      var k, dx, dy,
-          r = (n.size > 0 ? n.size + dr : dr + 1) + 2 /* styled border outer thickness and a bit */;
+      var k,
+          dx,
+          dy,
+          /* styled border outer thickness and a bit */
+          r = (n.size > 0 ? n.size + dr : dr + 1) + 2;
 
       dx = 0;
       if (n.x < r)
@@ -649,11 +661,13 @@ function init() {
 
       n.x += dx * k;
       n.y += dy * k;
-      // restraining completed.......................
+      // restraining completed
 
-      // fixes 'elusive' node behaviour when hovering with the mouse (related to force.drag)
+      // fixes 'elusive' node behaviour when hovering with the mouse (related
+      // to force.drag)
       if (n.fixed) {
-        // 'elusive behaviour' ~ move mouse near node and node would take off, i.e. act as an elusive creature.
+        // 'elusive behaviour' ~ move mouse near node and node would take off,
+        // i.e. act as an elusive creature.
         n.x = n.px;
         n.y = n.py;
       }
