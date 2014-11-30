@@ -10,7 +10,7 @@ var height = 600,       // svg height
     linkg,
     link,
     nodeg,
-    node,
+    svg_node,
     debug = 0; // 0: disable, 1: all, 2: only force2
 
 var curve = d3.svg.line()
@@ -24,10 +24,12 @@ function nodeid(node) {
   if (node.size > 0) {
     //console.log(n.size > 0 ? "_g_" + n.group + "_" + n.expansion : n.name);
     // e.g. "_g_10_1"
-    return "_g_" + node.group + "_" + node.expansion;
+    //return "_g_" + node.group + "_" + node.expansion;
+    return "file_" + node.group;
   }
   else {
-    return node.name;
+    //return node.name;
+    return "func_" + node.id;
   }
 }
 
@@ -47,7 +49,7 @@ function getGroup(node) {
 
 function cycleState(d) {
   var g = d.group,
-      s = expand[g] || 0;
+      s = expand[g] || false;
 
   s = s ? false : true;
   expand[g] = s;
@@ -55,7 +57,7 @@ function cycleState(d) {
 }
 
 // constructs the network to visualize
-function network(data, prev_network) {
+function network(data) {
   function checkNetworkState() {
     console.log("");
     console.log("Group Map");
@@ -67,110 +69,62 @@ function network(data, prev_network) {
     console.log("Link Map");
     console.log(link_map);
 
-    console.log("Node Group");
-    console.log(node_group);
-
-    console.log("Centroid Group");
-    console.log(centroid_group);
+    console.log("Expanded Clusters");
+    console.log(expand);
   }
 
   expand = expand || {};
   var group_map = {},
       node_map = {},
       link_map = {},
-      node_group = {},
-      centroid_group = {},
       // Output
       nodes = [],
       links = [];
 
-  // process previous nodes for reuse or centroid calculation
-  if (prev_network) {
-    reuse = reuse_network(prev_network, node_group, centroid_group);
-    node_group = reuse.ng;
-    centroid_group = reuse.cg;
-  }
-
-  nodes = determine_nodes(data.nodes, node_map, group_map,
-                          node_group, centroid_group, nodes);
-
+  nodes = determine_nodes(data.nodes, node_map, group_map);
 
   determine_links(data.links, node_map, group_map, link_map);
+
   checkNetworkState();
 
   for (var link_iter in link_map) {
     links.push(link_map[link_iter]);
   }
+  
+  console.log({ nodes: nodes, links: links });
 
   return { nodes: nodes,
            links: links };
 }
 
-function reuse_network(prev_network, node_group, centroid_group) {
-  prev_network.nodes.forEach(function(node) {
-    var group_id = getGroup(node),
-        link;
+function determine_nodes(nodes, node_map, group_map) {
+  var output_nodes = [];
 
-    if (node.size > 0) {
-      node_group[group_id] = node;
-      node.size = 0;
-      node.ig_link_count = 0;
-      node.link_count = 0;
-      node.first_link = null;
-      node.first_link_target = null;
-    }
-    else {
-      link = centroid_group[group_id] ||
-            (centroid_group[group_id] = { x: 0, y: 0, count: 0 });
-
-      link.x += node.x;
-      link.y += node.y;
-      // we count regular nodes here, so .count is a measure for the number of
-      // nodes in the group
-      link.count += 1;
-    }
-  });
-
-  return { ng: node_group, cg: centroid_group };
-}
-
-function determine_nodes(nodes, node_map, group_map, node_group, centroid_group, output_nodes) {
   nodes.forEach(function(node, k) {
     var group_id = getGroup(node),
-        expansion = expand[group_id] || 0;
+        node_id = nodeid(node),
+        expansion = expand[group_id] || false;
 
     if (!group_map[group_id]) {
-      // If no state for the group, check the node map
-      if (node_group[group_id]) {
-        group_map[group_id] = node_group[group_id];
-      }
-      // Else use a default state
-      else {
-        group_map[group_id] = { group: group_id,
-                                size: 0,
-                                nodes: [],
-                                ig_link_count: 0,
-                                link_count: 0,
-                                expansion: expansion };
-      }
+      // Use a default node state if not a group
+      group_map[group_id] = { group: group_id,
+                              size: 0,
+                              nodes: [],
+                              ig_link_count: 0,
+                              link_count: 0,
+                              expansion: expansion };
     }
 
     if (expansion) {
       // the node should be directly visible
-      node_map[nodeid(node)] = node;
+      node_map[node_id] = node;
       output_nodes.push(node);
-
-      if (node_group[group_id]) {
-        // place new nodes at cluster location (plus jitter)
-        node.x = node_group[group_id].x + Math.random();
-        node.y = node_group[group_id].y + Math.random();
-      }
     }
     else {
       // the node is part of a collapsed cluster
       if (group_map[group_id].size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
-        node_map[nodeid(node)] = group_map[group_id];
+        node_map[node_id] = group_map[group_id];
         // hack to make nodeid() work correctly for the new group node
         group_map[group_id].size = group_map[group_id];
         node_map[nodeid(group_map[group_id])] = group_map[group_id];
@@ -178,16 +132,11 @@ function determine_nodes(nodes, node_map, group_map, node_group, centroid_group,
         // undo hack
         group_map[group_id].size = 0;
         output_nodes.push(group_map[group_id]);
-
-        if (centroid_group[group_id]) {
-          group_map[group_id].x = centroid_group[group_id].x / centroid_group[group_id].count;
-          group_map[group_id].y = centroid_group[group_id].y / centroid_group[group_id].count;
-        }
       }
       else {
         // have element node point to group node:
         // l = shortcut for: node_map[nodeid(l)]
-        node_map[nodeid(node)] = group_map[group_id];
+        node_map[node_id] = group_map[group_id];
       }
       group_map[group_id].nodes.push(node);
     }
@@ -195,7 +144,7 @@ function determine_nodes(nodes, node_map, group_map, node_group, centroid_group,
     // always count group size as we also use it to tweak the force graph
     // strengths/distances
     group_map[group_id].size += 1;
-    node.group_data = l;
+    node.group_data = group_map[group_id];
     node.link_count = 0;
     node.first_link = null;
     node.first_link_target = null;
@@ -206,8 +155,6 @@ function determine_nodes(nodes, node_map, group_map, node_group, centroid_group,
 
 function determine_links(links, node_map, group_map, link_map) {
   links.forEach(function(current_link, j) {
-  //for (var j = 0; j < data.links.length; j++) {
-    //var current_link = data.links[j],
     var source = getGroup(current_link.source),
         target = getGroup(current_link.target),
         real_current_source,
@@ -263,6 +210,8 @@ function determine_links(links, node_map, group_map, link_map) {
       target.first_link_target = source;
     }
   });
+
+  return links;
 }
 
 function convexHulls(nodes, offset) {
@@ -300,8 +249,6 @@ function drawCluster(d) {
 // This should save us some memory and cycles when using
 // this in a long-running setting.
 function on_node_click(d) {
-  if (debug == 1)
-    console.log("node click", d, arguments, this, expand[d.group]);
   cycleState(d);
   init();
 }
@@ -401,23 +348,23 @@ function init() {
 
   if (force) force.stop();
 
-  net = network(data, net);
+  net = network(data);
 
   force = d3.layout.force()
     .nodes(net.nodes)
     .links(net.links)
     .size([responsive_width, height])
     .linkDistance(function(link, i) {
-      var n1 = link.source,
-          n2 = link.target,
-          g1 = n1.group_data || n1,
-          g2 = n2.group_data || n2,
-          n1_is_group = n1.size || 0,
-          n2_is_group = n2.size || 0,
+      var source = link.source,
+          target = link.target,
+          source_group = source.group_data || source,
+          target_group = target.group_data || target,
+          source_is_group = source.size || 0,
+          target_is_group = target.size || 0,
           link_dist = 300;
 
       // larger distance for bigger groups:
-      // both between single nodes and _other_ groups (where size of own node
+      // both between single nodes and other groups (where size of own node
       // group still counts), and between two group nodes.
 
       // reduce distance for groups with very few outer links,
@@ -426,32 +373,33 @@ function init() {
       // between two group nodes.
 
       // The latter was done to keep the single-link groups close.
-      if (n1.group == n2.group) {
-        if ((n1.link_count < 2 && !n1_is_group) || (n2.link_count < 2 && !n2_is_group)) {
+      if (source.group == target.group) {
+        if ((source.link_count < 2 && !source_is_group) ||
+            (target.link_count < 2 && !target_is_group)) {
           // 'real node' singles: don't need big distance to make the distance
           link_dist = 2;
         }
-        else if (!n1_is_group && !n2_is_group) {
+        else if (!source_is_group && !target_is_group) {
           link_dist = 2;
         }
-        else if (g1.link_count < 4 || g2.link_count < 4) {
+        else if (source_group.link_count < 4 || target_group.link_count < 4) {
           link_dist = 100;
         }
       }
       else {
-        if (!n1_is_group && !n2_is_group) {
+        if (!source_is_group && !target_is_group) {
           link_dist = 50;
         }
-        else if (n1_is_group && n2_is_group ) {
-          if (g1.link_count < 4 || g2.link_count < 4) {
+        else if (source_is_group && target_is_group ) {
+          if (source_group.link_count < 4 || target_group.link_count < 4) {
             link_dist = 100;
           }
         }
-        else if ((n1_is_group && g1.link_count < 2) ||
-                ( n2_is_group && g2.link_count < 2)) {
+        else if ((source_is_group && source_group.link_count < 2) ||
+                ( target_is_group && target_group.link_count < 2)) {
           link_dist = 30;
         }
-        else if (!n1_is_group || !n2_is_group) {
+        else if (!source_is_group || !target_is_group) {
           link_dist = 100;
         }
       }
@@ -463,14 +411,14 @@ function init() {
     // Charge is important to turn single-linked groups to the outside
     .charge(function(d, i) {
       if (d.size > 3) {
-        return -5000;  // group node
+        // group node
+        return -5000;
       } else {
-        // 'regular node'
+        // regular node
         return -1000;
       }
     })
-     // friction adjusted to get dampened display:
-     // less bouncy bouncy ball [Swedish Chef, anyone?]
+     // friction adjusted to get dampened display
     .friction(0.7)
     .start();
 
@@ -496,9 +444,9 @@ function init() {
   // expand state change somewhere:
   link.style("stroke-width", function(d) { return d.size || 1; });
 
-  node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
-  node.exit().remove();
-  node.enter().append("circle")
+  svg_node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
+  svg_node.exit().remove();
+  svg_node.enter().append("circle")
       // if (d.size) -- d.size > 0 when d is a group node.
       // d.size < 0 when d is a 'path helper node'.
       .attr("class", function(d) {
@@ -512,7 +460,7 @@ function init() {
       .style("fill", function(d) { return fill(d.group); })
       .on("dblclick", on_node_click);
 
-  node.call(force.drag);
+  svg_node.call(force.drag);
 
   var drag_in_progress = false;
   var change_squared;
@@ -521,7 +469,7 @@ function init() {
   // when the user moves the mouse outside the node, when we believe the drag
   // is still going on; even when it isn't anymore,
   // but D3 doesn't inform us about that!
-  node
+  svg_node
     .on("mouseout.ger_fix", function(d) {
       if (debug == 1)
         console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
@@ -752,7 +700,7 @@ function init() {
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
 
-    node.attr("cx", function(d) { return d.x; })
+    svg_node.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
   });
 }
