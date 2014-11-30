@@ -1,5 +1,4 @@
-var //width = 960,        // svg width
-    height = 600,       // svg height
+var height = 600,       // svg height
     dr = 4,             // default point radius
     off = 15,           // cluster hull offset
     expand = {},        // expanded clusters
@@ -138,16 +137,23 @@ function reuse_network(prev_network, node_group, centroid_group) {
 function determine_nodes(nodes, node_map, group_map, node_group, centroid_group, output_nodes) {
   nodes.forEach(function(node, k) {
     var group_id = getGroup(node),
-        expansion = expand[group_id] || 0,
-        l = group_map[group_id] ||
-           (group_map[group_id] = node_group[group_id]) ||
-           (group_map[group_id] = {group: group_id,
-                                          size: 0,
-                                          nodes: [],
-                                          ig_link_count: 0,
-                                          link_count: 0,
-                                          expansion: expansion });
-    //console.log(l);
+        expansion = expand[group_id] || 0;
+
+    if (!group_map[group_id]) {
+      // If no state for the group, check the node map
+      if (node_group[group_id]) {
+        group_map[group_id] = node_group[group_id];
+      }
+      // Else use a default state
+      else {
+        group_map[group_id] = { group: group_id,
+                                size: 0,
+                                nodes: [],
+                                ig_link_count: 0,
+                                link_count: 0,
+                                expansion: expansion };
+      }
+    }
 
     if (expansion) {
       // the node should be directly visible
@@ -162,32 +168,33 @@ function determine_nodes(nodes, node_map, group_map, node_group, centroid_group,
     }
     else {
       // the node is part of a collapsed cluster
-      if (l.size === 0) {
+      if (group_map[group_id].size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
-        node_map[nodeid(node)] = l;
+        node_map[nodeid(node)] = group_map[group_id];
         // hack to make nodeid() work correctly for the new group node
-        l.size = 1;
-        node_map[nodeid(l)] = l;
+        group_map[group_id].size = group_map[group_id];
+        node_map[nodeid(group_map[group_id])] = group_map[group_id];
 
         // undo hack
-        l.size = 0;
-        output_nodes.push(l);
+        group_map[group_id].size = 0;
+        output_nodes.push(group_map[group_id]);
 
         if (centroid_group[group_id]) {
-          l.x = centroid_group[group_id].x / centroid_group[group_id].count;
-          l.y = centroid_group[group_id].y / centroid_group[group_id].count;
+          group_map[group_id].x = centroid_group[group_id].x / centroid_group[group_id].count;
+          group_map[group_id].y = centroid_group[group_id].y / centroid_group[group_id].count;
         }
       }
       else {
         // have element node point to group node:
-        node_map[nodeid(node)] = l; // l = shortcut for: node_map[nodeid(l)];
+        // l = shortcut for: node_map[nodeid(l)]
+        node_map[nodeid(node)] = group_map[group_id];
       }
-      l.nodes.push(node);
+      group_map[group_id].nodes.push(node);
     }
 
     // always count group size as we also use it to tweak the force graph
     // strengths/distances
-    l.size += 1;
+    group_map[group_id].size += 1;
     node.group_data = l;
     node.link_count = 0;
     node.first_link = null;
@@ -310,7 +317,7 @@ var vis = d3.select(".viz_column").append("svg")
    //.attr("height", height);
 
 var pathgen = d3.svg.line().interpolate("basis");
-var responsive_width = vis[0][0].offsetWidth;
+var responsive_width = vis.property("offsetWidth");
 console.log(responsive_width);
 
 d3.json("scripts/static_data.json", function(json) {
@@ -344,20 +351,17 @@ d3.json("scripts/static_data.json", function(json) {
     ]
   }
   */
+
   data = json;
   for (var i = 0; i < data.links.length; i++) {
     o = data.links[i];
     o.source = data.nodes[o.source];
     o.target = data.nodes[o.target];
   }
-  // prepare data struct to also carry our 'path helper nodes':
-  //data.helpers = {left: {}, right: {}};
 
   hullg = vis.append("g");
   linkg = vis.append("g");
   nodeg = vis.append("g");
-  //helper_nodeg = vis.append("g");
-  //helper_linkg = vis.append("g");
 
   init();
 
