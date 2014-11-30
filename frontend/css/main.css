@@ -47,6 +47,7 @@ code {
 
 /*pre*/.code_block {
   height: 100%;
+  margin: 0;
 }
 
 /*Make pre tag wrap*/
@@ -59,7 +60,7 @@ code {
 }
 
 /*code*/.code_viewer {
-overflow: auto;
+  overflow: auto;
 }
 
 /*
