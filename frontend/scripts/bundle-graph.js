@@ -264,8 +264,9 @@ var vis = d3.select(".viz_column").append("svg")
    //.attr("height", height);
 
 var pathgen = d3.svg.line().interpolate("basis");
-var responsive_width = vis.property("offsetWidth");
-console.log(responsive_width);
+console.log(vis);
+var responsive_width = vis.property("parentNode").clientWidth;
+console.log("responsive_width", responsive_width);
 
 d3.json("scripts/static_data.json", function(json) {
   /*
