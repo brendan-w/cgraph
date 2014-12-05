@@ -43,12 +43,13 @@ function run(files) {
 module.exports = run;
 
 //test
+
 var path_to_senna = "../../../senna/";
 console.log(run([
-  "../tests/memmgr/memmgr.c",
-  "../tests/memmgr/memmgr.h",
-	//"./tests/hello/hello.c",
-	//"./tests/hello/other.c",
+	// "./tests/memmgr/memmgr.c",
+	// "./tests/memmgr/memmgr.h",
+	"./tests/hello/hello.c",
+	"./tests/hello/other.c",
 	//path_to_senna + "SENNA_CHK.c",
 	//path_to_senna + "SENNA_Hash.c",
 	//path_to_senna + "SENNA_main.c",
