@@ -1,45 +1,6 @@
 
 //models
 
-/*
-function JSONFile(file)
-{
-	return {
-		"filename": file.filename,
-		"functions": [],
-	};
-}
-
-function JSONFunc(func)
-{
-	return {
-		"name": func.token.name,
-		"public": !((func.storage !== null) && (func.storage.name === "static")),
-		"line": func.token.line,
-		"calls": [],
-	};
-}
-
-function JSONCall(name, fileID, func_ID)
-{
-	return {
-		"name": name,
-		"linked": true,
-		"file_ID": fileID,
-		"func_ID": func_ID,
-	};
-}
-
-function JSONUnlinkedCall(name)
-{
-	return {
-		"name": name,
-		"linked": false,
-	};
-}
-*/
-
-
 function node(name, id, group, line)
 {
 	return {
@@ -57,6 +18,17 @@ function link(source, target, value)
 		"target":target,
 		"value":value,
 	};
+}
+
+
+
+//helpers
+
+function incrementKey(obj, key)
+{
+	if(obj[key] === undefined)
+		obj[key] = 0;
+	obj[key]++;
 }
 
 
@@ -130,7 +102,7 @@ module.exports = function(maps) {
 		{
 			var func = maps[m].functions[f];
 
-			var calls = {} //key = target, value = occurences
+			var calls = {} //key = target, value = number of occurences
 
 			for(var c = 0; c < func.calls.length; c++)
 			{
@@ -141,26 +113,16 @@ module.exports = function(maps) {
 				var inPublic  = publicIdents[callName];
 
 				if(inPrivate) //the called function exists in static scope
-				{
-					if(calls[inPrivate] === undefined)
-						calls[inPrivate] = 0;
-					calls[inPrivate]++;
-				}
+					incrementKey(calls, inPrivate);
 				else if(inPublic) //the called function exists in the global scope
-				{
-					if(calls[inPublic] === undefined)
-						calls[inPublic] = 0;
-					calls[inPublic]++;
-				}
+					incrementKey(calls, inPublic);
 				else //the call does not exist in the project (probably an external library)
-				{
 					console.log("unlinked call: " + callName);
-				}
 			}
 
 			for(var target in calls)
 			{
-				links.push(link(func_ID, target, calls[target]));
+				links.push(link(func_ID, parseInt(target), calls[target]));
 			}
 
 			func_ID++;
