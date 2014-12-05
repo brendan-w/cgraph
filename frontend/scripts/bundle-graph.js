@@ -268,7 +268,7 @@ console.log(vis);
 var responsive_width = vis.property("parentNode").clientWidth;
 console.log("responsive_width", responsive_width);
 
-d3.json("scripts/static_data.json", function(json) {
+d3.json("scripts/our_static_data.json", function(json) {
   /*
   JSON layout:
 

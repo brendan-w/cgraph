@@ -23,6 +23,7 @@
 
 var parseFile = require('./parseFile.js');
 var link      = require('./linker.js');
+var fs        = require('fs');
 
 
 function run(files) {
@@ -45,7 +46,7 @@ module.exports = run;
 //test
 
 var path_to_senna = "../../../senna/";
-console.log(run([
+var output = run([
 	// "./tests/hash.c",
 	// "./tests/memmgr/memmgr.c",
 	// "./tests/memmgr/memmgr.h",
@@ -65,4 +66,7 @@ console.log(run([
 	//path_to_senna + "SENNA_Treillis.c",
 	//path_to_senna + "SENNA_utils.c",
 	//path_to_senna + "SENNA_VBS.c",
-]));
+]);
+
+console.log(output);
+fs.writeFileSync("output.json", output);

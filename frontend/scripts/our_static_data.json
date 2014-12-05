@@ -1,0 +1,38 @@
+{
+    "groups": [
+        "./tests/hello/hello.c",
+        "./tests/hello/other.c"
+    ],
+    "nodes": [
+        {
+            "name": "main",
+            "id": 0,
+            "group": 0,
+            "line": 8
+        },
+        {
+            "name": "foo",
+            "id": 1,
+            "group": 0,
+            "line": 17
+        },
+        {
+            "name": "bazz",
+            "id": 2,
+            "group": 1,
+            "line": 5
+        }
+    ],
+    "links": [
+        {
+            "source": 0,
+            "target": 1,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 2,
+            "value": 2
+        }
+    ]
+}
