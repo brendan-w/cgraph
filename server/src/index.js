@@ -46,6 +46,7 @@ module.exports = run;
 
 var path_to_senna = "../../../senna/";
 console.log(run([
+	// "./tests/hash.c",
 	// "./tests/memmgr/memmgr.c",
 	// "./tests/memmgr/memmgr.h",
 	"./tests/hello/hello.c",
