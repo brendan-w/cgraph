@@ -1,19 +1,19 @@
 {
     "groups": [
-        "/home/brendan/Downloads/senna/SENNA_CHK.c",
-        "/home/brendan/Downloads/senna/SENNA_Hash.c",
-        "/home/brendan/Downloads/senna/SENNA_main.c",
-        "/home/brendan/Downloads/senna/SENNA_NER.c",
-        "/home/brendan/Downloads/senna/SENNA_nn.c",
-        "/home/brendan/Downloads/senna/SENNA_POS.c",
-        "/home/brendan/Downloads/senna/SENNA_PSG.c",
-        "/home/brendan/Downloads/senna/SENNA_PT0.c",
-        "/home/brendan/Downloads/senna/SENNA_Scores2Treillis.c",
-        "/home/brendan/Downloads/senna/SENNA_SRL.c",
-        "/home/brendan/Downloads/senna/SENNA_Tokenizer.c",
-        "/home/brendan/Downloads/senna/SENNA_Treillis.c",
-        "/home/brendan/Downloads/senna/SENNA_utils.c",
-        "/home/brendan/Downloads/senna/SENNA_VBS.c"
+        "SENNA_CHK.c",
+        "SENNA_Hash.c",
+        "SENNA_main.c",
+        "SENNA_NER.c",
+        "SENNA_nn.c",
+        "SENNA_POS.c",
+        "SENNA_PSG.c",
+        "SENNA_PT0.c",
+        "SENNA_Scores2Treillis.c",
+        "SENNA_SRL.c",
+        "SENNA_Tokenizer.c",
+        "SENNA_Treillis.c",
+        "SENNA_utils.c",
+        "SENNA_VBS.c"
     ],
     "nodes": [
         {

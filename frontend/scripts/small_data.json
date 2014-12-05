@@ -1,7 +1,7 @@
 {
     "groups": [
-        "./tests/hello/hello.c",
-        "./tests/hello/other.c"
+        "hello.c",
+        "other.c"
     ],
     "nodes": [
         {

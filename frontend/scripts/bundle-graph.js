@@ -244,11 +244,20 @@ function drawCluster(d) {
   return curve(d.path); // 0.85
 }
 
+function on_node_click(d) {
+  //check the node type to make sure we update when a function is clicked
+  if(!d.size)
+  {
+    var filename = data.groups[d.group];
+    goto_line(filename, d.line);
+  }
+}
+
 // these functions call init(); by declaring them here,
 // they don't have the old init() as a closure any more.
 // This should save us some memory and cycles when using
 // this in a long-running setting.
-function on_node_click(d) {
+function on_node_dblclick(d) {
   cycleState(d);
   init();
 }
@@ -430,7 +439,7 @@ function init() {
         .attr("class", "hull")
         .attr("d", drawCluster)
         .style("fill", function(d) { return fill(d.group); })
-        .on("dblclick", on_node_click);
+        .on("dblclick", on_node_dblclick);
 
   link = linkg.selectAll("line.link").data(net.links, linkid);
   link.exit().remove();
@@ -459,7 +468,8 @@ function init() {
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style("fill", function(d) { return fill(d.group); })
-      .on("dblclick", on_node_click);
+      .on("dblclick", on_node_dblclick)
+      .on("click", on_node_click);
 
   svg_node.call(force.drag);
 
