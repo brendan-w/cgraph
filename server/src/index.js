@@ -45,27 +45,27 @@ module.exports = run;
 
 //test
 
-var path_to_senna = "../../../senna/";
+var path_to_senna = "/home/brendan/Downloads/senna/";
 var output = run([
 	// "./tests/hash.c",
 	// "./tests/memmgr/memmgr.c",
 	// "./tests/memmgr/memmgr.h",
-	"./tests/hello/hello.c",
-	"./tests/hello/other.c",
-	//path_to_senna + "SENNA_CHK.c",
-	//path_to_senna + "SENNA_Hash.c",
-	//path_to_senna + "SENNA_main.c",
-	//path_to_senna + "SENNA_NER.c",
-	//path_to_senna + "SENNA_nn.c",
-	//path_to_senna + "SENNA_POS.c",
-	//path_to_senna + "SENNA_PSG.c",
-	//path_to_senna + "SENNA_PT0.c",
-	//path_to_senna + "SENNA_Scores2Treillis.c",
-	//path_to_senna + "SENNA_SRL.c",
-	//path_to_senna + "SENNA_Tokenizer.c",
-	//path_to_senna + "SENNA_Treillis.c",
-	//path_to_senna + "SENNA_utils.c",
-	//path_to_senna + "SENNA_VBS.c",
+	// "./tests/hello/hello.c",
+	// "./tests/hello/other.c",
+	path_to_senna + "SENNA_CHK.c",
+	path_to_senna + "SENNA_Hash.c",
+	path_to_senna + "SENNA_main.c",
+	path_to_senna + "SENNA_NER.c",
+	path_to_senna + "SENNA_nn.c",
+	path_to_senna + "SENNA_POS.c",
+	path_to_senna + "SENNA_PSG.c",
+	path_to_senna + "SENNA_PT0.c",
+	path_to_senna + "SENNA_Scores2Treillis.c",
+	path_to_senna + "SENNA_SRL.c",
+	path_to_senna + "SENNA_Tokenizer.c",
+	path_to_senna + "SENNA_Treillis.c",
+	path_to_senna + "SENNA_utils.c",
+	path_to_senna + "SENNA_VBS.c",
 ]);
 
 console.log(output);

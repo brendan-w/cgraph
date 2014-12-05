@@ -1,9 +1,11 @@
 /*
-aasdf
+	prototypes
 */
 int foo();
+int bazz();
+
 /*
-fffff
+	functions
 */
 int main() //main
 {
@@ -20,3 +22,7 @@ static int foo()
 	return 0;
 }
 
+static int bazz()
+{
+	return 0;
+}

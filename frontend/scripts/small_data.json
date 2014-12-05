@@ -8,17 +8,23 @@
             "name": "main",
             "id": 0,
             "group": 0,
-            "line": 8
+            "line": 10
         },
         {
             "name": "foo",
             "id": 1,
             "group": 0,
-            "line": 17
+            "line": 19
         },
         {
             "name": "bazz",
             "id": 2,
+            "group": 0,
+            "line": 25
+        },
+        {
+            "name": "bazz",
+            "id": 3,
             "group": 1,
             "line": 5
         }
