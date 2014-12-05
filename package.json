@@ -2,13 +2,13 @@
   "name": "cgraph",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/index.js",
+  "main": "./server/app.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "start": "node ./src/index.js",
-    "pretest": "jshint ./src",
+    "start": "node ./server/app.js",
+    "pretest": "jshint ./parser",
     "test": "echo \"Test Complete\""
   },
   "repository": {
@@ -22,6 +22,12 @@
   },
   "homepage": "https://github.com/brendanwhitfield/cgraph",
   "dependencies": {
+    "d3": "^3.4.13",
+    "express": "^4.10.4",
+    "lodash": "^2.4.1",
+    "reqwest": "^1.1.5"
+  },
+  "devDependencies": {
     "jshint": "^2.5.10"
   }
 }
