@@ -247,11 +247,12 @@ function drawCluster(d) {
 
 function on_node_click(d) {
   //check the node type to make sure we update when a function is clicked
-  if(!d.size)
-  {
+  //console.log(d);
+  //if(!d.size)
+  //{
     var filename = data.groups[d.group];
     goto_line(filename, d.line);
-  }
+  //}
 }
 
 // these functions call init(); by declaring them here,
