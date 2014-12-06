@@ -91,7 +91,7 @@ function network(data) {
     links.push(link_map[link_iter]);
   }
 
-  console.log({ nodes: nodes, links: links });
+  //console.log({ nodes: nodes, links: links });
 
   return { nodes: nodes,
            links: links };
@@ -104,6 +104,8 @@ function determine_nodes(nodes, node_map, group_map) {
     var group_id = getGroup(node),
         node_id = nodeid(node),
         expansion = expand[group_id] || false;
+
+    console.log(expansion);
 
     if (!group_map[group_id]) {
       // Use a default node state if not a group
@@ -135,7 +137,6 @@ function determine_nodes(nodes, node_map, group_map) {
       }
       else {
         // have element node point to group node:
-        // l = shortcut for: node_map[nodeid(l)]
         node_map[node_id] = group_map[group_id];
       }
       group_map[group_id].nodes.push(node);
@@ -273,9 +274,9 @@ var vis = d3.select(".viz_column").append("svg")
    //.attr("height", height);
 
 var pathgen = d3.svg.line().interpolate("basis");
-console.log(vis);
+//console.log(vis);
 var responsive_width = vis.property("parentNode").clientWidth;
-console.log("responsive_width", responsive_width);
+//console.log("responsive_width", responsive_width);
 
 d3.json("scripts/senna.json", function(json) {
   /*
