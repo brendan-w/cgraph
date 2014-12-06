@@ -8,7 +8,7 @@ function goto_line(filename, line)
 
 	reqwest("/file/" + filename, function(res) {
 		code_viewer.innerHTML = res;
-		console.log(res);
+		//console.log(res);
 
 		// If we're using syntax highlighting, update it on the new file
 		if(Prism) {
@@ -16,7 +16,7 @@ function goto_line(filename, line)
 
       line_number_tag = document
         .querySelector(".line-numbers-rows :nth-child(" + line + ")");
-      line_number_tag.scrollIntoView();
+      code_viewer.parentNode.scrollTop = line_number_tag.offsetTop;
 		}
 	});
 }
