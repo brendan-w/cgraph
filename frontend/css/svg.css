@@ -1,0 +1,90 @@
+/*
+ * SVG Styles
+ */
+
+svg {
+  width: 100%;
+  height:100%;
+  /*border: 1px solid #ccc;*/
+  user-select: none;
+}
+
+path.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+circle {
+  fill: #ccc;
+  stroke: #333;
+  stroke-width: 1.5px;
+}
+
+text {
+  font: 10px sans-serif;
+  pointer-events: none;
+}
+
+text.shadow {
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-opacity: .8;
+}
+
+circle.node {
+  fill: lightsteelblue;
+  stroke: #555;
+  stroke-width: 3px;
+}
+
+circle.leaf {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+circle.link-expanded {
+  stroke: #555;
+  stroke-width: 3px;
+  stroke-dasharray: 2px 4px;
+}
+
+circle.helper {
+  stroke-width: 0;
+  fill: #333;
+  opacity: 0.6;
+}
+
+circle.center-of-mass {
+  fill: white;
+  stroke: red;
+  stroke-width: 5px;
+}
+
+path.hull {
+  fill: lightsteelblue;
+  fill-opacity: 0.3;
+}
+
+path.hlink {
+  //stroke: #333;
+  stroke: blue;
+  stroke-opacity: 0.5;
+  fill: none;
+  pointer-events: none;
+}
+
+line.link {
+  //stroke: #555;
+  stroke: red;
+  stroke-opacity: 0.5;
+  pointer-events: none;
+}
+
+path.exapnded {
+  stroke-opacity: 0.75;
+}
+
+path.not-expanded {
+  stroke-opacity: 0.2;
+}

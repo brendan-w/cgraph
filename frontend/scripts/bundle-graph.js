@@ -264,9 +264,7 @@ function on_node_dblclick(d) {
 
 // --------------------------------------------------------
 
-var vis = d3.select(".viz_column").append("svg")
-    .attr("height", height)
-    ;
+var vis = d3.select(".viz_column").append("svg");
 
 //var vis = body.append("svg")
    //.attr("width", width)
@@ -275,7 +273,9 @@ var vis = d3.select(".viz_column").append("svg")
 var pathgen = d3.svg.line().interpolate("basis");
 console.log(vis);
 var responsive_width = vis.property("parentNode").clientWidth;
+var responsive_height = vis.property("parentNode").clientHeight;
 console.log("responsive_width", responsive_width);
+console.log("responsive_height", responsive_height);
 
 d3.json("scripts/senna.json", function(json) {
   /*
@@ -363,7 +363,7 @@ function init() {
   force = d3.layout.force()
     .nodes(net.nodes)
     .links(net.links)
-    .size([responsive_width, height])
+    .size([responsive_width, responsive_height])
     .linkDistance(function(link, i) {
       var source = link.source,
           target = link.target,

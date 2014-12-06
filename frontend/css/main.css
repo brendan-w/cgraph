@@ -3,18 +3,26 @@
  */
 
 * {
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+  box-sizing: border-box;         /* Opera/IE 8+ */
 }
 
 html,
 body {
   height: 100%;
-  margin: 0;
   font-family: "Merriweather", serif;
 }
 
-body {
-  margin: 2.5%;
+header {
+  color:white;
+  background: black;
+  padding:10px;
+}
+
+header > *
+{
+  display: inline-block;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -22,9 +30,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  margin: 0;
-  line-height: 1.25;
+  font-size: 22pt;
 }
+
+
 
 pre,
 code {
@@ -32,22 +41,12 @@ code {
   font-size: 0.9em;
 }
 
-.column {
-  float: left;
-}
-
-.code_column {
-  width: 50%;
-  height: 80%;
-}
-
-.viz_column {
-  width: 50%;
-}
+.column { float: left; }
+.code_column { width: 50%; }
+.viz_column  { width: 50%; }
 
 /*pre*/.code_block {
   height: 100%;
-  margin: 0;
 }
 
 /*Make pre tag wrap*/
@@ -61,94 +60,4 @@ code {
 
 /*code*/.code_viewer {
   overflow: auto;
-}
-
-/*
- * SVG Styles
- */
-
-svg {
-  width: 100%;
-  border: 1px solid #ccc;
-  user-select: none;
-}
-
-path.link {
-  fill: none;
-  stroke: #666;
-  stroke-width: 1.5px;
-}
-
-circle {
-  fill: #ccc;
-  stroke: #333;
-  stroke-width: 1.5px;
-}
-
-text {
-  font: 10px sans-serif;
-  pointer-events: none;
-}
-
-text.shadow {
-  stroke: #fff;
-  stroke-width: 3px;
-  stroke-opacity: .8;
-}
-
-circle.node {
-  fill: lightsteelblue;
-  stroke: #555;
-  stroke-width: 3px;
-}
-
-circle.leaf {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-circle.link-expanded {
-  stroke: #555;
-  stroke-width: 3px;
-  stroke-dasharray: 2px 4px;
-}
-
-circle.helper {
-  stroke-width: 0;
-  fill: #333;
-  opacity: 0.6;
-}
-
-circle.center-of-mass {
-  fill: white;
-  stroke: red;
-  stroke-width: 5px;
-}
-
-path.hull {
-  fill: lightsteelblue;
-  fill-opacity: 0.3;
-}
-
-path.hlink {
-  //stroke: #333;
-  stroke: blue;
-  stroke-opacity: 0.5;
-  fill: none;
-  pointer-events: none;
-}
-
-line.link {
-  //stroke: #555;
-  stroke: red;
-  stroke-opacity: 0.5;
-  pointer-events: none;
-}
-
-path.exapnded {
-  stroke-opacity: 0.75;
-}
-
-path.not-expanded {
-  stroke-opacity: 0.2;
 }
