@@ -27,9 +27,7 @@ function goto_line(filename, line)
 var header      = document.querySelector("header");
 var viz_column  = document.querySelector(".viz_column");
 var code_column = document.querySelector(".code_column");
-
-var col_height = window.innerHeight - header.clientHeight;
-
+var col_height  = window.innerHeight - header.clientHeight;
 
 code_column.style.height = col_height;
 viz_column.style.height = col_height;

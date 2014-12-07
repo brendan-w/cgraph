@@ -74,101 +74,84 @@ function network(data) {
   }
 
   expand = expand || {};
-  var group_map = {},
-      node_map = {},
-      link_map = {},
-      // Output
-      nodes = [],
-      links = [];
-
-  nodes = determine_nodes(data.nodes, node_map, group_map);
-
-  determine_links(data.links, node_map, group_map, link_map);
+  var node_data = determine_nodes(data.nodes),
+      nodes     = node_data.nodes,
+      node_map  = node_data.node_map,
+      group_map = node_data.group_map,
+      link_map  = build_link_map(data.links, node_map),
+      links     = build_links(link_map);
 
   checkNetworkState();
 
-  for (var link_iter in link_map) {
-    links.push(link_map[link_iter]);
-  }
-
   //console.log({ nodes: nodes, links: links });
-
-  return { nodes: nodes,
-           links: links };
+  return { nodes: nodes, links: links };
 }
 
-function determine_nodes(nodes, node_map, group_map) {
-  var output_nodes = [];
+function determine_nodes(node_ds) {
+  var nodes = [],
+      group_map = {},
+      node_map = {};
 
-  nodes.forEach(function(node, k) {
+  node_ds.forEach(function(node, k) {
     var group_id = getGroup(node),
         node_id = nodeid(node),
         expansion = expand[group_id] || false;
+    //console.log(expansion);
 
-    console.log(expansion);
-
+    // Use a default node state if not a group
     if (!group_map[group_id]) {
-      // Use a default node state if not a group
-      group_map[group_id] = { group: group_id,
-                              size: 0,
-                              nodes: [],
-                              ig_link_count: 0,
-                              link_count: 0,
-                              expansion: expansion };
+      group_map[group_id] = { group: group_id, size: 0, link_count: 0,
+                              nodes: [], expansion: expansion };
     }
 
+    // the node should be directly visible
     if (expansion) {
-      // the node should be directly visible
       node_map[node_id] = node;
-      output_nodes.push(node);
+      nodes.push(node);
     }
+    // the node is part of a collapsed cluster
     else {
-      // the node is part of a collapsed cluster
       if (group_map[group_id].size === 0) {
         // if new cluster, add to set and position at centroid of leaf nodes
         node_map[node_id] = group_map[group_id];
+
         // hack to make nodeid() work correctly for the new group node
         group_map[group_id].size = group_map[group_id];
         node_map[nodeid(group_map[group_id])] = group_map[group_id];
 
         // undo hack
         group_map[group_id].size = 0;
-        output_nodes.push(group_map[group_id]);
+        nodes.push(group_map[group_id]);
       }
+      // have element node point to group node:
       else {
-        // have element node point to group node:
         node_map[node_id] = group_map[group_id];
       }
       group_map[group_id].nodes.push(node);
     }
 
     // always count group size as we also use it to tweak the force graph
-    // strengths/distances
     group_map[group_id].size += 1;
     node.group_data = group_map[group_id];
     node.link_count = 0;
     node.first_link = null;
     node.first_link_target = null;
   });
-
-  return output_nodes;
+  return { nodes: nodes, node_map: node_map, group_map: group_map };
 }
 
-function determine_links(links, node_map, group_map, link_map) {
-  links.forEach(function(current_link, j) {
+function build_link_map(links, node_map) {
+  var link_map = {};
+
+  links.forEach(function(current_link) {
     var source = getGroup(current_link.source),
         target = getGroup(current_link.target),
-        real_current_source,
-        real_current_target,
+        real_source,
+        real_target,
         current_source,
         current_target,
         link_map_key,
         link;
-
-    if (source != target) {
-      group_map[source].ig_link_count++;
-      group_map[target].ig_link_count++;
-    }
 
     // While d3.layout.force does convert link.source and link.target NUMERIC
     // values to direct node references, it doesn't for other attributes, such
@@ -176,10 +159,10 @@ function determine_links(links, node_map, group_map, link_map) {
     // references to skip the d3.layout.force implicit links conversion later
     // on and ensure that both .source/.target and .real_source/.real_target
     // are of the same type and pointing at valid nodes.
-    real_current_source = nodeid(current_link.source);
-    real_current_target = nodeid(current_link.target);
-    source = node_map[real_current_source];
-    target = node_map[real_current_target];
+    real_source = nodeid(current_link.source);
+    real_target = nodeid(current_link.target);
+    source = node_map[real_source];
+    target = node_map[real_target];
 
     // skip links from node to same (A-A); they are rendered as 0-length
     // lines anyhow. Less links in array = faster animation.
@@ -193,11 +176,14 @@ function determine_links(links, node_map, group_map, link_map) {
     else
       link_map_key = current_target + "|" + current_source;
 
-    link = link_map[link_map_key] ||
-          (link_map[link_map_key] = { source: source,
-                                      target: target,
-                                      size: 0,
-                                      distance: 0});
+    if (link_map[link_map_key]) {
+      link = link_map[link_map_key];
+    }
+    else {
+      link = {source: source, target: target, size: 0, distance: 0};
+      link_map[link_map_key] = link;
+    }
+
     link.size += 1;
 
     // these are only useful for single-linked nodes, but we don't care;
@@ -212,6 +198,14 @@ function determine_links(links, node_map, group_map, link_map) {
     }
   });
 
+  return link_map;
+}
+
+function build_links(link_map) {
+  links = [];
+  for (var key in link_map) {
+    links.push(link_map[key]);
+  }
   return links;
 }
 
@@ -246,13 +240,8 @@ function drawCluster(d) {
 }
 
 function on_node_click(d) {
-  //check the node type to make sure we update when a function is clicked
-  //console.log(d);
-  //if(!d.size)
-  //{
-    var filename = data.groups[d.group];
-    goto_line(filename, d.line);
-  //}
+  var filename = data.groups[d.group];
+  goto_line(filename, d.line);
 }
 
 // these functions call init(); by declaring them here,
@@ -267,11 +256,6 @@ function on_node_dblclick(d) {
 // --------------------------------------------------------
 
 var vis = d3.select(".viz_column").append("svg");
-
-//var vis = body.append("svg")
-   //.attr("width", width)
-   //.attr("height", height);
-
 var pathgen = d3.svg.line().interpolate("basis");
 var responsive_width = vis.property("parentNode").clientWidth;
 var responsive_height = vis.property("parentNode").clientHeight;
@@ -279,37 +263,6 @@ console.log("responsive_width", responsive_width);
 console.log("responsive_height", responsive_height);
 
 d3.json("scripts/senna.json", function(json) {
-  /*
-  JSON layout:
-
-  {
-    "nodes": [
-      {
-        // in this code, this is expected to be a globally unique string
-        // (as it's used for the id via nodeid())
-        "name"  : "bla",
-
-        // group ID (number)
-        "group" : 1
-      },
-      ...
-    ],
-    "links": [
-      {
-         // nodes[] index (number; is immediately converted to direct
-         // nodes[index] reference)
-        "source" : 1,
-        // nodes[] index (number; is immediately converted to direct
-        // nodes[index] reference)
-        "target" : 0,
-        // [not used in this force layout]
-        "value"  : 1
-      },
-      ...
-    ]
-  }
-  */
-
   data = json;
   for (var i = 0; i < data.links.length; i++) {
     o = data.links[i];
