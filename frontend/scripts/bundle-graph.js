@@ -601,60 +601,6 @@ function init() {
       n.qy = n.y;
     });
 
-    // fast stop + the drag fix, part 2:
-    if (change_squared < 0.005) {
-
-      if (debug == 1)
-        console.log("fast stop: CPU load redux");
-      force.stop();
-
-      // fix part 4: monitor D3 resetting the drag marker:
-      if (drag_in_progress) {
-
-        if (debug == 1)
-          console.log("START monitor drag in progress", drag_in_progress);
-
-        d3.timer(function() {
-          drag_in_progress = false;
-          net.nodes.forEach(function(n) {
-
-            if (n.fixed & 2) {
-              drag_in_progress = true;
-            }
-          });
-
-          force.resume();
-
-          if (debug == 1)
-            console.log("monitor drag in progress: drag ENDED", drag_in_progress);
-
-          // Quit monitoring as soon as we noticed the drag ENDED.
-          // Note: we continue to monitor at +500ms intervals beyond the last tick
-          //       as this timer function ALWAYS kickstarts the force layout again
-          //       through force.resume().
-          //       d3.timer() API only accepts an initial delay; we can't set this
-          //       thing to scan, say, every 500msecs until the drag is done,
-          //       so we do it that way, via the revived force.tick process.
-          return true;
-        }, 500);
-      }
-    }
-    else if ( change_squared > net.nodes.length * 5 &&
-              e.alpha < resume_threshold) {
-      // jolt the alpha (and the visual) when there's still a lot of change
-      // when we hit the alpha threshold.
-      force.alpha(Math.min(0.1, e.alpha *= 2));
-      // force.resume(), but now with decreasing alpha starting value so the
-      // jolts don't get so big.
-
-      // And 'dampen out' the trigger point, so it becomes harder and harder to
-      // trigger the threshold. This is done to cope with those instable
-      // (forever rotating, etc.) layouts...
-      resume_threshold *= 0.9;
-    }
-
-    //--------------------------------------------------------------------
-
     if (!hull.empty()) {
       hull.data(convexHulls(net.nodes, off))
           .attr("d", drawCluster);
