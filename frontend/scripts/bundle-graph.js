@@ -28,7 +28,8 @@ function log(object) {
 }
 
 function nodeid(node) {
-  if (node.size > 0) {
+  //if (node.size > 0 || node.is_group) {
+  if (node.is_group) {
     // e.g. "_g_10_1"
     //return "_g_" + node.group + "_" + node.expansion;
     return "file_" + node.group;
@@ -43,10 +44,10 @@ function linkid(link) {
   var source = nodeid(link.source),
       target = nodeid(link.target);
 
-  if (source < target)
-    return source + "|" + target;
-  else
-    return source + "|" + target;
+  //if (source < target)
+  return source + "|" + target;
+  //else
+    //return target + "|" + source;
 }
 
 function get_group(node) {
@@ -94,7 +95,7 @@ function network(data) {
 
   //checkNetworkState();
 
-  //console.log({ nodes: nodes, links: links });
+  console.log({ nodes: nodes, links: links });
   return { nodes: nodes, links: links };
 }
 
@@ -103,23 +104,18 @@ function determine_nodes(node_ds) {
       group_map = {},
       node_map = {};
 
-  //log(node_ds);
-  //log(expand);
-
   node_ds.forEach(function(node, k) {
     var group_id = get_group(node),
         node_id = nodeid(node),
         // Expand is an object of the form {`group_id` : boolean}
         expansion = expand[group_id] || false;
-    //console.log(expansion);
+        //console.log(expansion);
 
     // Set a default group state if it hasn't already been initiated
     if (!group_map[group_id]) {
       group_map[group_id] = { group: group_id, size: 0, link_count: 0,
-                              nodes: [], expansion: expansion };
+                              nodes: [], expansion: expansion, is_group: true };
     }
-
-    log(group_map);
 
     // if cluster expanded, the node should be directly visible
     if (expansion) {
@@ -132,12 +128,8 @@ function determine_nodes(node_ds) {
         // if new cluster, add to set and position at centroid of leaf nodes
         node_map[node_id] = group_map[group_id];
 
-        // hack to make nodeid() work correctly for the new group node
-        group_map[group_id].size = group_map[group_id];
+        // Add the collapsed cluster to the list of nodes
         node_map[nodeid(group_map[group_id])] = group_map[group_id];
-
-        // undo hack
-        group_map[group_id].size = 0;
         nodes.push(group_map[group_id]);
       }
       // have element node point to group node:
@@ -335,7 +327,7 @@ function init() {
   if (force) force.stop();
 
   net = network(data);
-  console.log(net);
+  //console.log(net);
 
   force = d3.layout.force()
     .nodes(net.nodes)
