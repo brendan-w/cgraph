@@ -8,11 +8,6 @@ var app = express();
 app.disable("x-powered-by");
 
 
-//routing & controlling
-app.use('/', express.static("frontend/"));
-app.use('/node_modules/', express.static("node_modules/"));
-
-
 route(app);
 
 //start
