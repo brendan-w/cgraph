@@ -20,9 +20,15 @@ var curve = d3.svg.line()
 
 var fill = d3.scale.category20();
 
+function log(object) {
+  // console.log prints a reference to the object, but sometimes we want
+  // to inspect the state of a variable frozen at the time of the call
+  // JSON.stringify serves this purpose
+  console.log(JSON.stringify(object, null, "\t"));
+}
+
 function nodeid(node) {
   if (node.size > 0) {
-    //console.log(n.size > 0 ? "_g_" + n.group + "_" + n.expansion : n.name);
     // e.g. "_g_10_1"
     //return "_g_" + node.group + "_" + node.expansion;
     return "file_" + node.group;
@@ -43,8 +49,12 @@ function linkid(link) {
     return source + "|" + target;
 }
 
-function getGroup(node) {
+function get_group(node) {
   return node.group;
+}
+
+function get_node(nodes, node_id) {
+  return nodes[node_id];
 }
 
 function cycleState(d) {
@@ -59,18 +69,19 @@ function cycleState(d) {
 // constructs the network to visualize
 function network(data) {
   function checkNetworkState() {
-    console.log("");
-    console.log("Group Map");
+    log("");
+    log("Group Map");
     console.log(group_map);
+    log(group_map);
 
-    console.log("Node Map");
-    console.log(node_map);
+    log("Node Map");
+    log(node_map);
 
-    console.log("Link Map");
-    console.log(link_map);
+    log("Link Map");
+    log(link_map);
 
-    console.log("Expanded Clusters");
-    console.log(expand);
+    log("Expanded Clusters");
+    log(expand);
   }
 
   expand = expand || {};
@@ -81,7 +92,7 @@ function network(data) {
       link_map  = build_link_map(data.links, node_map),
       links     = build_links(link_map);
 
-  checkNetworkState();
+  //checkNetworkState();
 
   //console.log({ nodes: nodes, links: links });
   return { nodes: nodes, links: links };
@@ -92,19 +103,25 @@ function determine_nodes(node_ds) {
       group_map = {},
       node_map = {};
 
+  //log(node_ds);
+  //log(expand);
+
   node_ds.forEach(function(node, k) {
-    var group_id = getGroup(node),
+    var group_id = get_group(node),
         node_id = nodeid(node),
+        // Expand is an object of the form {`group_id` : boolean}
         expansion = expand[group_id] || false;
     //console.log(expansion);
 
-    // Use a default node state if not a group
+    // Set a default group state if it hasn't already been initiated
     if (!group_map[group_id]) {
       group_map[group_id] = { group: group_id, size: 0, link_count: 0,
                               nodes: [], expansion: expansion };
     }
 
-    // the node should be directly visible
+    log(group_map);
+
+    // if cluster expanded, the node should be directly visible
     if (expansion) {
       node_map[node_id] = node;
       nodes.push(node);
@@ -127,25 +144,30 @@ function determine_nodes(node_ds) {
       else {
         node_map[node_id] = group_map[group_id];
       }
-      group_map[group_id].nodes.push(node);
+      group_map[group_id].nodes.push(node_id);
     }
 
     // always count group size as we also use it to tweak the force graph
     group_map[group_id].size += 1;
     node.group_data = group_map[group_id];
     node.link_count = 0;
-    node.first_link = null;
-    node.first_link_target = null;
   });
+
   return { nodes: nodes, node_map: node_map, group_map: group_map };
 }
 
 function build_link_map(links, node_map) {
   var link_map = {};
 
+  //console.log("links");
+  //console.log(links);
+
+  //console.log("node_map");
+  //console.log(node_map);
+
   links.forEach(function(current_link) {
-    var source = getGroup(current_link.source),
-        target = getGroup(current_link.target),
+    var source = get_group(current_link.source),
+        target = get_group(current_link.target),
         real_source,
         real_target,
         current_source,
@@ -180,7 +202,8 @@ function build_link_map(links, node_map) {
       link = link_map[link_map_key];
     }
     else {
-      link = {source: source, target: target, size: 0, distance: 0};
+      link = {source: source, target: target,
+              size: 0, distance: 0, key: link_map_key};
       link_map[link_map_key] = link;
     }
 
@@ -191,12 +214,11 @@ function build_link_map(links, node_map) {
     if (link.size == 1) {
       source.link_count++;
       target.link_count++;
-      source.first_link = link;
-      target.first_link = link;
-      source.first_link_target = target;
-      target.first_link_target = source;
     }
   });
+
+  //console.log("link_map");
+  //console.log(link_map);
 
   return link_map;
 }
@@ -216,7 +238,7 @@ function convexHulls(nodes, offset) {
   for (var k = 0; k < nodes.length; k++) {
     var n = nodes[k];
     if (n.size) continue;
-    var i = getGroup(n),
+    var i = get_group(n),
         l = hulls[i] || (hulls[i] = []);
 
     l.push([n.x-offset, n.y-offset]);
@@ -228,8 +250,7 @@ function convexHulls(nodes, offset) {
   // create convex hulls
   var hullset = [];
   for (var j in hulls) {
-    hullset.push({ group: j,
-                   path: d3.geom.hull(hulls[j]) });
+    hullset.push({ group: j, path: d3.geom.hull(hulls[j]) });
   }
 
   return hullset;
@@ -253,17 +274,18 @@ function on_node_dblclick(d) {
   init();
 }
 
-// --------------------------------------------------------
-
 var vis = d3.select(".viz_column").append("svg");
 var pathgen = d3.svg.line().interpolate("basis");
 var responsive_width = vis.property("parentNode").clientWidth;
 var responsive_height = vis.property("parentNode").clientHeight;
-console.log("responsive_width", responsive_width);
-console.log("responsive_height", responsive_height);
+//console.log("responsive_width", responsive_width);
+//console.log("responsive_height", responsive_height);
 
-d3.json("scripts/senna.json", function(json) {
+d3.json("scripts/senna2.json", function(json) {
   data = json;
+
+  // Change source and targets from id's to objects
+  // Do we really need this?
   for (var i = 0; i < data.links.length; i++) {
     o = data.links[i];
     o.source = data.nodes[o.source];
@@ -313,6 +335,7 @@ function init() {
   if (force) force.stop();
 
   net = network(data);
+  console.log(net);
 
   force = d3.layout.force()
     .nodes(net.nodes)
@@ -395,14 +418,11 @@ function init() {
         .style("fill", function(d) { return fill(d.group); })
         .on("dblclick", on_node_dblclick);
 
-  link = linkg.selectAll("line.link").data(net.links, linkid);
+  link = linkg.selectAll("path.link").data(net.links, linkid);
   link.exit().remove();
-  link.enter().append("line")
+  link.enter().append("path")
     .attr("class", "link")
-    .attr("x1", function(d) { return d.source.x; })
-    .attr("y1", function(d) { return d.source.y; })
-    .attr("x2", function(d) { return d.target.x; })
-    .attr("y2", function(d) { return d.target.y; });
+    .attr("d", linkArc);
 
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
@@ -434,19 +454,17 @@ function init() {
   // when the user moves the mouse outside the node, when we believe the drag
   // is still going on; even when it isn't anymore,
   // but D3 doesn't inform us about that!
-  svg_node
-    .on("mouseout.ger_fix", function(d) {
-      if (debug == 1)
-        console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
-      if (drag_in_progress) {
-        force.resume();
-      }
-    });
-
-  var resume_threshold = 0.05;
+  //svg_node
+    //.on("mouseout.ger_fix", function(d) {
+      //if (debug == 1)
+        //console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
+      //if (drag_in_progress) {
+        //force.resume();
+      //}
+    //});
 
   force.on("tick", function(e) {
-    //Force all nodes with only one link to point outwards.
+   //Force all nodes with only one link to point outwards.
 
     //To do this, we first calculate the center mass (okay, we wing it, we fake
     //node 'weight'), then see whether the target node for links from single-link
@@ -487,9 +505,7 @@ function init() {
     my = size[1] / 2;
 
     singles.forEach(function(n) {
-      var l = n.first_link,
-          n2 = n.first_link_target,
-          k,
+      var k,
           x,
           y,
           alpha,
@@ -497,11 +513,12 @@ function init() {
           dx,
           dy,
           n_is_group = n.size || 0,
-          ng = n.group_data || n,
           w = Math.max(1, n.size || 0, n.weight || 0);
 
       // haven't decided what to do for unconnected nodes, yet...
-      if (!l) return;
+      if (n.link_count === 0) {
+        return;
+      }
 
       // apply amplification of the 'original' alpha:
       // 1.0 for singles and double-connected nodes, close to 0 for highly
@@ -606,12 +623,19 @@ function init() {
           .attr("d", drawCluster);
     }
 
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+    link.attr("d", linkArc);
 
     svg_node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+            .attr("cy", function(d) { return d.y; });
   });
+}
+
+function linkArc(d) {
+  var dx = d.target.x - d.source.x,
+      dy = d.target.y - d.source.y,
+      dr = Math.sqrt(dx * dx + dy * dy);
+
+  return "M" + d.source.x + "," + d.source.y +
+         "A" + dr + "," + dr + " 0 0,1 " +
+         d.target.x + "," + d.target.y;
 }

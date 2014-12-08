@@ -1,0 +1,366 @@
+{
+    "groups": [
+        "SENNA_CHK.c",
+        "SENNA_Hash.c",
+        "SENNA_main.c",
+        "SENNA_NER.c",
+        "SENNA_nn.c",
+        "SENNA_POS.c"
+    ],
+    "nodes": [
+        {
+            "name": "SENNA_CHK_forward",
+            "id": 0,
+            "group": 0,
+            "line": 5
+        },
+        {
+            "name": "SENNA_CHK_new",
+            "id": 1,
+            "group": 0,
+            "line": 29
+        },
+        {
+            "name": "SENNA_CHK_free",
+            "id": 2,
+            "group": 0,
+            "line": 79
+        },
+        {
+            "name": "SENNA_Hash_new",
+            "id": 3,
+            "group": 1,
+            "line": 6
+        },
+        {
+            "name": "SENNA_Hash_new_with_admissible_keys",
+            "id": 4,
+            "group": 1,
+            "line": 56
+        },
+        {
+            "name": "SENNA_Hash_convert_IOBES_to_IOB",
+            "id": 5,
+            "group": 1,
+            "line": 77
+        },
+        {
+            "name": "SENNA_Hash_convert_IOBES_to_brackets",
+            "id": 6,
+            "group": 1,
+            "line": 95
+        },
+        {
+            "name": "SENNA_Hash_free",
+            "id": 7,
+            "group": 1,
+            "line": 147
+        },
+        {
+            "name": "SENNA_Hash_index",
+            "id": 8,
+            "group": 1,
+            "line": 159
+        },
+        {
+            "name": "SENNA_Hash_key",
+            "id": 9,
+            "group": 1,
+            "line": 187
+        },
+        {
+            "name": "SENNA_Hash_size",
+            "id": 10,
+            "group": 1,
+            "line": 195
+        },
+        {
+            "name": "SENNA_Hash_is_admissible_index",
+            "id": 11,
+            "group": 1,
+            "line": 200
+        },
+        {
+            "name": "help",
+            "id": 12,
+            "group": 2,
+            "line": 21
+        },
+        {
+            "name": "main",
+            "id": 13,
+            "group": 2,
+            "line": 62
+        },
+        {
+            "name": "SENNA_NER_forward",
+            "id": 14,
+            "group": 3,
+            "line": 5
+        },
+        {
+            "name": "SENNA_NER_new",
+            "id": 15,
+            "group": 3,
+            "line": 44
+        },
+        {
+            "name": "SENNA_NER_free",
+            "id": 16,
+            "group": 3,
+            "line": 103
+        },
+        {
+            "name": "SENNA_nn_lookup",
+            "id": 17,
+            "group": 4,
+            "line": 22
+        },
+        {
+            "name": "SENNA_nn_hardtanh",
+            "id": 18,
+            "group": 4,
+            "line": 45
+        },
+        {
+            "name": "SENNA_nn_linear",
+            "id": 19,
+            "group": 4,
+            "line": 61
+        },
+        {
+            "name": "SENNA_nn_max",
+            "id": 20,
+            "group": 4,
+            "line": 81
+        },
+        {
+            "name": "SENNA_nn_temporal_convolution",
+            "id": 21,
+            "group": 4,
+            "line": 103
+        },
+        {
+            "name": "SENNA_nn_temporal_max_convolution",
+            "id": 22,
+            "group": 4,
+            "line": 126
+        },
+        {
+            "name": "SENNA_nn_temporal_max",
+            "id": 23,
+            "group": 4,
+            "line": 156
+        },
+        {
+            "name": "SENNA_nn_distance",
+            "id": 24,
+            "group": 4,
+            "line": 175
+        },
+        {
+            "name": "SENNA_nn_viterbi",
+            "id": 25,
+            "group": 4,
+            "line": 191
+        },
+        {
+            "name": "SENNA_POS_forward",
+            "id": 26,
+            "group": 5,
+            "line": 5
+        },
+        {
+            "name": "SENNA_POS_new",
+            "id": 27,
+            "group": 5,
+            "line": 29
+        },
+        {
+            "name": "SENNA_POS_free",
+            "id": 28,
+            "group": 5,
+            "line": 79
+        },
+        {
+            "name": "SENNA_PSG_forward",
+            "id": 29,
+            "group": 6,
+            "line": 6
+        },
+        {
+            "name": "SENNA_PSG_new",
+            "id": 30,
+            "group": 6,
+            "line": 94
+        },
+        {
+            "name": "SENNA_PSG_free",
+            "id": 31,
+            "group": 6,
+            "line": 155
+        }
+    ],
+    "links": [
+        {
+            "source": 0,
+            "target": 17,
+            "value": 3
+        },
+        {
+            "source": 0,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 0,
+            "target": 19,
+            "value": 2
+        },
+        {
+            "source": 0,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 4,
+            "target": 3,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 1,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 3,
+            "value": 12
+        },
+        {
+            "source": 13,
+            "target": 4,
+            "value": 4
+        },
+        {
+            "source": 13,
+            "target": 5,
+            "value": 3
+        },
+        {
+            "source": 13,
+            "target": 6,
+            "value": 3
+        },
+        {
+            "source": 13,
+            "target": 9,
+            "value": 4
+        },
+        {
+            "source": 13,
+            "target": 12,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 14,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 15,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 26,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 27,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 29,
+            "value": 1
+        },
+        {
+            "source": 13,
+            "target": 30,
+            "value": 1
+        },
+        {
+            "source": 14,
+            "target": 17,
+            "value": 6
+        },
+        {
+            "source": 14,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 14,
+            "target": 19,
+            "value": 2
+        },
+        {
+            "source": 17,
+            "target": 0,
+            "value": 3
+        },
+        {
+            "source": 14,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 21,
+            "target": 19,
+            "value": 1
+        },
+        {
+            "source": 26,
+            "target": 17,
+            "value": 3
+        },
+        {
+            "source": 26,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 26,
+            "target": 19,
+            "value": 2
+        },
+        {
+            "source": 26,
+            "target": 25,
+            "value": 1
+        },
+        {
+            "source": 29,
+            "target": 17,
+            "value": 4
+        },
+        {
+            "source": 29,
+            "target": 18,
+            "value": 1
+        },
+        {
+            "source": 29,
+            "target": 21,
+            "value": 3
+        },
+        {
+            "source": 29,
+            "target": 22,
+            "value": 1
+        }
+    ]
+}

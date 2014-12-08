@@ -12,7 +12,8 @@ svg {
 path.link {
   fill: none;
   stroke: #666;
-  stroke-width: 1.5px;
+  stroke-opacity: 0.3;
+  /*stroke-width: 1.5px;*/
 }
 
 circle {
