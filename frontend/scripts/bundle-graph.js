@@ -11,7 +11,8 @@ var height = 600,       // svg height
     link,
     nodeg,
     svg_node,
-    debug = 0; // 0: disable, 1: all, 2: only force2
+    // Probably should adjust these dyanmically with the data
+    link_scale = d3.scale.log().clamp(true).domain([1, 50]).range([1, 12]);
 
 var curve = d3.svg.line()
   .interpolate("cardinal-closed")
@@ -44,10 +45,7 @@ function linkid(link) {
   var source = nodeid(link.source),
       target = nodeid(link.target);
 
-  //if (source < target)
   return source + "|" + target;
-  //else
-    //return target + "|" + source;
 }
 
 function get_group(node) {
@@ -175,6 +173,7 @@ function build_link_map(links, node_map) {
     // are of the same type and pointing at valid nodes.
     real_source = nodeid(current_link.source);
     real_target = nodeid(current_link.target);
+    // Real source tells us whether it's going to the file or the function node
     source = node_map[real_source];
     target = node_map[real_target];
 
@@ -185,10 +184,7 @@ function build_link_map(links, node_map) {
     current_source = nodeid(source);
     current_target = nodeid(target);
 
-    if (current_source < current_target)
-      link_map_key = current_source + "|" + current_target;
-    else
-      link_map_key = current_target + "|" + current_source;
+    link_map_key = current_source + "|" + current_target;
 
     if (link_map[link_map_key]) {
       link = link_map[link_map_key];
@@ -199,7 +195,7 @@ function build_link_map(links, node_map) {
       link_map[link_map_key] = link;
     }
 
-    link.size += 1;
+    link.size += current_link.value;
 
     // these are only useful for single-linked nodes, but we don't care;
     // here we have everything we need at minimum cost.
@@ -418,7 +414,9 @@ function init() {
 
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
-  link.style("stroke-width", function(d) { return d.size || 1; });
+  link.style("stroke-width", function(d) {
+    return link_scale(d.size) || 1;
+  });
 
   svg_node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
   svg_node.exit().remove();
@@ -439,21 +437,7 @@ function init() {
 
   svg_node.call(force.drag);
 
-  var drag_in_progress = false;
   var change_squared;
-
-  // CPU load redux for the fix, part 3: jumpstart the annealing process again
-  // when the user moves the mouse outside the node, when we believe the drag
-  // is still going on; even when it isn't anymore,
-  // but D3 doesn't inform us about that!
-  //svg_node
-    //.on("mouseout.ger_fix", function(d) {
-      //if (debug == 1)
-        //console.log("mouseout.ger_fix", this, arguments, d.fixed, drag_in_progress);
-      //if (drag_in_progress) {
-        //force.resume();
-      //}
-    //});
 
   force.on("tick", function(e) {
    //Force all nodes with only one link to point outwards.
@@ -474,18 +458,12 @@ function init() {
         dy,
         alpha;
 
-    drag_in_progress = false;
-
     net.nodes.forEach(function(n) {
       var w = Math.max(1, n.size || 0, n.weight || 0);
 
       center.x += w * n.x;
       center.y += w * n.y;
       center.weight += w;
-
-      if (n.fixed & 2) {
-        drag_in_progress = true;
-      }
 
       if (n.size > 0 ? n.link_count < 4 : n.group_data.link_count < 3)
         singles.push(n);
