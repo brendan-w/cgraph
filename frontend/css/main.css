@@ -60,7 +60,7 @@ form#git-url
 
 form#git-url #url
 {
-  padding-padding: 10px;
+  margin-bottom: 20px;
 }
 
 form#git-url span, form#git-url input[type="text"]

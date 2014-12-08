@@ -22,9 +22,11 @@
   },
   "homepage": "https://github.com/brendanwhitfield/cgraph",
   "dependencies": {
+    "body-parser": "^1.10.0",
     "d3": "^3.4.13",
     "express": "^4.10.4",
     "lodash": "^2.4.1",
+    "nodegit": "^0.2.4",
     "reqwest": "^1.1.5"
   },
   "devDependencies": {

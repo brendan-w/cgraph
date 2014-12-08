@@ -1,10 +1,21 @@
 
-var fs = require('fs');
+var fs    = require('fs');
+var url   = require('url');
+var clone = require('nodegit').Clone.clone;
 
 
+//submission of new git URL
 module.exports.cloneAndParse = function(req, res) {
+	var git = req.body.url;
 
+	if(!git) git = "brendanwhitfield/senna";
+	git = url.resolve("git://github.com/", git);
 
+	//clone the repo into the temp directory
+	clone(git, "tmp").then(function(repo) {
+		res.redirect("/cgraph.html");
+
+	});
 };
 
 
