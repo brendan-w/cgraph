@@ -2,6 +2,7 @@
 var express     = require('express');
 var body_parser = require('body-parser');
 var route       = require('./router.js');
+var config      = require('./config.js');
 
 
 //setup
@@ -14,11 +15,12 @@ app.use(body_parser.urlencoded({
 
 route(app);
 
+console.log(config)
 
 //start
-var server = app.listen(8000, function(err) {
+var server = app.listen(config.http_port, function(err) {
 	if(err)
 		console.log(err);
 	else
-		console.log("============ Serving on port 8000 ============");
+		console.log("============ Serving on port " + config.http_port + " ============");
 });

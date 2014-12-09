@@ -1,20 +1,71 @@
 
-var fs    = require('fs');
-var url   = require('url');
-var clone = require('nodegit').Clone.clone;
+var fs     = require('fs');
+var url    = require('url');
+var path   = require('path');
+var mkdirp = require('mkdirp');
+var clone  = require('nodegit').Clone.clone;
+var util   = require('./util.js');
+var config = require('./config.js');
 
+
+function sendError(res, message)
+{
+	return res.status(400).json({error:message}).send();
+}
+
+function parseRepo(tpm_path, done)
+{
+	console.log("Parse");
+	done();
+}
+
+function updateRepo(res, git_url, tmp_path, done)
+{
+	// parseRepo(tpm_path, done);
+	return sendError(res, "Not implemented yet");
+}
+
+//new repo, must be cloned down
+function newRepo(res, git_url, tmp_path, done)
+{
+	mkdirp(tmp_path, function(err) {
+		if(err)
+		{
+			return sendError(res, 'Failed to make tmp directory. Invalid path?');
+		}
+		else
+		{
+			//clone the repo into the temp directory
+			clone(git_url, tmp_path).then(done);
+		}
+	});
+}
 
 //submission of new git URL
 module.exports.cloneAndParse = function(req, res) {
-	var git = req.body.url;
+	var user_repo = req.body.url;
 
-	if(!git) git = "brendanwhitfield/senna";
-	git = url.resolve("git://github.com/", git);
+	if(!user_repo)
+		user_repo = "brendanwhitfield/senna";
 
-	//clone the repo into the temp directory
-	clone(git, "tmp").then(function(repo) {
-		res.redirect("/cgraph.html");
+	var tmp_path = path.join(config.tmp_dir, user_repo);
 
+	if(!util.securePath(tmp_path, config.tmp_dir))
+		return sendError('Please specifiy valid path');
+
+	var git_url = url.resolve("git://github.com/", user_repo);
+	
+	fs.exists(tmp_path, function(exists) {
+
+		function done()
+		{
+			res.redirect("/cgraph.html");
+		}
+
+		if(exists)
+			updateRepo(res, git_url, tmp_path, done);
+		else
+			newRepo(res, git_url, tmp_path, done);
 	});
 };
 
