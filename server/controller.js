@@ -1,11 +1,11 @@
 
-var fs     = require('fs');
-var url    = require('url');
-var path   = require('path');
-var mkdirp = require('mkdirp');
-var clone  = require('nodegit').Clone.clone;
-var util   = require('./util.js');
-var config = require('./config.js');
+var fs      = require('fs');
+var url     = require('url');
+var path    = require('path');
+var mkdirp  = require('mkdirp');
+var git     = require('gift');
+var util    = require('./util.js');
+var config  = require('./config.js');
 
 
 function sendError(res, message)
@@ -21,8 +21,14 @@ function parseRepo(tpm_path, done)
 
 function updateRepo(res, git_url, tmp_path, done)
 {
-	// parseRepo(tpm_path, done);
-	return sendError(res, "Not implemented yet");
+	//var dot_git = path.join(tmp_path, ".git");
+	repo = git(tmp_path);
+	repo.git("pull", {}, ["origin", "master"], function(err) {
+		if(err)
+			return sendError(res, "Failed to pull new updates for repo");
+		else
+			return done();
+	});
 }
 
 //new repo, must be cloned down
@@ -36,7 +42,12 @@ function newRepo(res, git_url, tmp_path, done)
 		else
 		{
 			//clone the repo into the temp directory
-			clone(git_url, tmp_path).then(done);
+			git.clone(git_url, tmp_path, function(err, repo) {
+				if(err)
+					return sendError(res, "Failed to clone repository");
+				else
+					return done();
+			});
 		}
 	});
 }
