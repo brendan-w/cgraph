@@ -25,9 +25,14 @@ function updateRepo(res, git_url, tmp_path, done)
 	repo = git(tmp_path);
 	repo.git("pull", {}, ["origin", "master"], function(err) {
 		if(err)
+		{
+			console.log(err);
 			return sendError(res, "Failed to pull new updates for repo");
+		}
 		else
+		{
 			return done();
+		}
 	});
 }
 
@@ -44,9 +49,14 @@ function newRepo(res, git_url, tmp_path, done)
 			//clone the repo into the temp directory
 			git.clone(git_url, tmp_path, function(err, repo) {
 				if(err)
+				{
+					console.log(err);
 					return sendError(res, "Failed to clone repository");
+				}
 				else
+				{
 					return done();
+				}
 			});
 		}
 	});
@@ -105,3 +115,6 @@ module.exports.getFile = function(req, res) {
 	});
 };
 
+module.exports.homePage = function(req, res) {
+	res.render('index');
+};

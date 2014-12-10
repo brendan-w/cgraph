@@ -7,6 +7,8 @@ var config      = require('./config.js');
 
 //setup
 var app = express();
+app.set('views', config.views_dir); 
+app.set('view engine', 'jade');
 app.disable("x-powered-by");
 app.use(body_parser.urlencoded({
 	extended: true,
@@ -15,12 +17,13 @@ app.use(body_parser.urlencoded({
 
 route(app);
 
-console.log(config)
+console.log("============= Starting with settings =============");
+console.log(config);
 
 //start
 var server = app.listen(config.http_port, function(err) {
 	if(err)
 		console.log(err);
 	else
-		console.log("============ Serving on port " + config.http_port + " ============");
+		console.log("============== Serving on port " + config.http_port + " ==============");
 });

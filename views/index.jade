@@ -1,0 +1,16 @@
+extends ./base.jade
+
+block body
+  div.center-outer
+    div.center-inner
+      form#git-url(action="/", method="POST")
+        #url
+          span http://github.com/
+          input(type='text', name='url', placeholder='brendanwhitfield/senna')
+        button(type='submit') Run
+
+block script
+  script(type='text/javascript').
+    var header     = document.querySelector("header");
+    var center     = document.querySelector(".center-outer");
+    center.style.height = window.innerHeight - header.clientHeight;
