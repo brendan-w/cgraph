@@ -80,7 +80,7 @@ module.exports.cloneAndParse = function(req, res) {
 
 		function done()
 		{
-			res.redirect("/cgraph.html");
+			res.redirect("/cgraph?repo=" + user_repo);
 		}
 
 		if(exists)
@@ -117,4 +117,8 @@ module.exports.getFile = function(req, res) {
 
 module.exports.homePage = function(req, res) {
 	res.render('index');
+};
+
+module.exports.cgraphPage = function(req, res) {
+	res.render('cgraph');
 };

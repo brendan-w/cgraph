@@ -1,0 +1,23 @@
+extends ./base.jade
+
+block head
+  link(rel='stylesheet', type='text/css', href='/static/css/svg.css')
+  link(rel='stylesheet', type='text/css', href='/static/lib/prism-default.css')
+
+
+block body
+  div.column.code_column
+    //pre formatted means whitespace matters
+    pre.code_block.line-numbers
+      code#js_code_viewer.code_viewer.language-c
+        Click on a node on the right to view its code.
+
+  div.column.viz_column
+
+
+block script
+  script(type='text/javascript', src='/node_modules/reqwest/reqwest.min.js')
+  script(type='text/javascript', src='/node_modules/d3/d3.min.js')
+  script(type='text/javascript', src='/node_modules/lodash/dist/lodash.min.js')
+  script(type='text/javascript', src='/lib/prism.min.js')
+  script(type='text/javascript', src='/static/scripts/bundle-graph.js')

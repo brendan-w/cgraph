@@ -269,7 +269,7 @@ var responsive_height = vis.property("parentNode").clientHeight;
 //console.log("responsive_width", responsive_width);
 //console.log("responsive_height", responsive_height);
 
-d3.json("scripts/senna2.json", function(json) {
+d3.json("/static/scripts/senna2.json", function(json) {
   data = json;
 
   // Change source and targets from id's to objects
