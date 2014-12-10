@@ -13,7 +13,6 @@ module.exports = function(app) {
 	app.post("/",               c.cloneAndParse);
 	app.get ("/cgraph",         c.cgraphPage);
 	app.get ("/data/:giturl",   c.getData);
-	app.get ("/file/:filename", c.getFile);
+	app.get ("/file",           c.getFile);
 };
-
 

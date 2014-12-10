@@ -8,8 +8,10 @@ module.exports.securePath = function(dirty_path, root_dir)
 		return false;
 
 	//only allow the following characters
-	if (!/^[a-z0-9\/]+$/.test(dirty_path))
+	/*
+	if (!/^[a-z0-9\/_]+$/.test(dirty_path))
 		return false;
+	*/
 
 	//if a root directory is specified, it MUST appear 
 	if(root_dir)

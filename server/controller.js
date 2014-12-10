@@ -72,7 +72,7 @@ module.exports.cloneAndParse = function(req, res) {
 	var tmp_path = path.join(config.tmp_dir, user_repo);
 
 	if(!util.securePath(tmp_path, config.tmp_dir))
-		return sendError('Please specifiy valid path');
+		return sendError(res, 'Please specifiy valid path');
 
 	var git_url = url.resolve("git://github.com/", user_repo);
 	
@@ -80,7 +80,8 @@ module.exports.cloneAndParse = function(req, res) {
 
 		function done()
 		{
-			res.redirect("/cgraph?repo=" + user_repo);
+			var query = "?repo=" + user_repo;
+			res.redirect("/cgraph" + query);
 		}
 
 		if(exists)
@@ -99,10 +100,13 @@ module.exports.getData = function(req, res) {
 
 //serves the C files
 module.exports.getFile = function(req, res) {
-	//nah, this isn't a giant security hole or anything...
-	var filename = 'tmp/' + req.param("filename");
-	
-	fs.readFile(filename, 'utf-8', function(err, data) {
+	var tmp_path = path.join(config.tmp_dir, req.query.name);
+	tmp_path = path.resolve(tmp_path);
+
+	if(!util.securePath(tmp_path, config.tmp_dir))
+		return sendError(res, 'Please specifiy valid path');
+
+	fs.readFile(tmp_path, 'utf-8', function(err, data) {
 		if(err)
 		{
 			console.log(err);
