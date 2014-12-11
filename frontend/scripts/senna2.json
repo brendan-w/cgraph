@@ -1,11 +1,12 @@
 {
     "groups": [
-        "SENNA_CHK.c",
-        "SENNA_Hash.c",
-        "SENNA_main.c",
-        "SENNA_NER.c",
-        "SENNA_nn.c",
-        "SENNA_POS.c"
+        "brendanwhitfield/senna/SENNA_CHK.c",
+        "brendanwhitfield/senna/SENNA_Hash.c",
+        "brendanwhitfield/senna/SENNA_main.c",
+        "brendanwhitfield/senna/SENNA_NER.c",
+        "brendanwhitfield/senna/SENNA_nn.c",
+        "brendanwhitfield/senna/SENNA_POS.c",
+        "brendanwhitfield/senna/SENNA_PSG.c"
     ],
     "nodes": [
         {

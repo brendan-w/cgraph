@@ -16,8 +16,13 @@ block body
 
 
 block script
+
+  //libs
   script(type='text/javascript', src='/node_modules/reqwest/reqwest.min.js')
   script(type='text/javascript', src='/node_modules/d3/d3.min.js')
   script(type='text/javascript', src='/node_modules/lodash/dist/lodash.min.js')
-  script(type='text/javascript', src='/lib/prism.min.js')
+  script(type='text/javascript', src='/static/lib/prism.min.js')
+
+  //our code
+  script(type='text/javascript', src='/static/scripts/main.js')
   script(type='text/javascript', src='/static/scripts/bundle-graph.js')

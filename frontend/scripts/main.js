@@ -4,9 +4,9 @@ function goto_line(filename, line)
 {
   // `line` is an optional variable, as filenames won't have this
   if (line === undefined) line = 1;
-	console.log(filename, line);
+	// console.log(filename, line);
 
-	reqwest("/file/" + filename, function(res) {
+	reqwest("/file?name=" + filename, function(res) {
 		code_viewer.innerHTML = res;
 
 		// If we're using syntax highlighting, update it on the new file
