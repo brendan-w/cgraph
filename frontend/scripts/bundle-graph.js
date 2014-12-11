@@ -2,7 +2,6 @@ var height = 600,       // svg height
     dr = 4,             // default point radius
     off = 15,           // cluster hull offset
     expand = {},        // expanded clusters
-    data,
     net,
     force,
     hullg,
@@ -269,8 +268,8 @@ var responsive_height = vis.property("parentNode").clientHeight;
 //console.log("responsive_width", responsive_width);
 //console.log("responsive_height", responsive_height);
 
-d3.json("/static/scripts/senna2.json", function(json) {
-  data = json;
+function main() {
+  //data = json;
 
   // Change source and targets from id's to objects
   // Do we really need this?
@@ -290,7 +289,7 @@ d3.json("/static/scripts/senna2.json", function(json) {
     .transition()
     .duration(1000)
     .attr("opacity", 1);
-});
+}
 
 function init() {
   /*
@@ -609,3 +608,5 @@ function linkArc(d) {
          "A" + dr + "," + dr + " 0 0,1 " +
          d.target.x + "," + d.target.y;
 }
+
+main();

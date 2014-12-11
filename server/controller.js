@@ -55,9 +55,7 @@ module.exports.cgraphPage = function(req, res) {
 			//parse the C files into a call graph
 			parse(files, function(err, data) {
 				var data = JSON.stringify(data, function(k, v){return v;}, 4);
-				console.log(data);
-				//res.render('cgraph', { user:user, repo:repo, data:data });
-
+				res.render('cgraph', { user:user, repo:repo, data:data });
 			});
 		}
 	});

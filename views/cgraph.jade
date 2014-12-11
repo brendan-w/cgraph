@@ -24,5 +24,10 @@ block script
   script(type='text/javascript', src='/static/lib/prism.min.js')
 
   //our code
+  script(type='text/javascript').
+    var user = "#{user}";
+    var repo = "#{repo}";
+    var data = !{data};
+
   script(type='text/javascript', src='/static/scripts/main.js')
   script(type='text/javascript', src='/static/scripts/bundle-graph.js')
