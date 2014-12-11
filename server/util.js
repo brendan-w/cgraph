@@ -1,5 +1,5 @@
 
-var path  = require('path');
+var path = require('path');
 
 module.exports.securePath = function(dirty_path, root_dir)
 {
@@ -22,3 +22,26 @@ module.exports.securePath = function(dirty_path, root_dir)
 
 	return true;
 }
+
+
+module.exports.treeToC = function(tree) {
+	//find all C files in the given tree
+
+	var files = [];
+
+	for(var i = 0; i < tree.tree.length; i++)
+	{
+		var item = tree.tree[i];
+		if(item.type === 'blob')
+		{
+			var ext = path.extname(item.path).toLowerCase();
+			
+			if(ext === '.c')
+			{
+				files.push(item.path);
+			}
+		}
+	}
+
+	return files;
+};

@@ -1,0 +1,28 @@
+
+/*
+ *    Landing page
+ */
+
+
+form#git-url
+{
+  display:inline-block;
+  padding: 20px;
+  background: #DDD;
+}
+
+form#git-url #url
+{
+  margin-bottom: 20px;
+}
+
+form#git-url span, form#git-url input[type="text"]
+{
+  font-family: "Inconsolata", monospace;
+  font-size:1.25em;
+}
+
+form#git-url input[type="text"]
+{
+  width:9em;
+}

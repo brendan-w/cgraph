@@ -1,4 +1,50 @@
 /*
+ *    VIZ
+ */
+
+pre,
+code {
+  font-family: "Inconsolata", monospace;
+  font-size: 0.9em;
+}
+
+
+.column { float: left; }
+
+.viz_column  { width: 50%; }
+
+.code_column {
+  background: #f5f2f0;
+  padding-top: 1em;
+  width: 50%;
+}
+
+
+/*pre*/.code_block {
+  height: 100%;
+}
+
+/*Make pre tag wrap*/
+/*pre*/.wrap {
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+/*code*/.code_viewer {
+  overflow: auto;
+}
+
+
+
+
+
+
+
+
+/*
  * SVG Styles
  */
 

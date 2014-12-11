@@ -1,0 +1,31 @@
+extends ./base.jade
+
+block head
+  link(rel='stylesheet', type='text/css', href='/static/css/select.css')
+
+block body
+  div.center-outer
+    div.center-inner
+      form#select-files(action="/cgraph", method="GET")
+
+        input(type="hidden", name="user", value="#{user}")
+        input(type="hidden", name="repo", value="#{repo}")
+        
+        h1 #{user}/#{repo}
+
+        #files
+          if files.length > 0
+            each file in files
+              label.file.mono
+                input(type="checkbox", name="#{file}")
+                span #{file}
+          else
+            .no-files No C files found
+
+        button(type='submit') Run
+
+block script
+  script(type='text/javascript').
+    var header     = document.querySelector("header");
+    var center     = document.querySelector(".center-outer");
+    center.style.height = window.innerHeight - header.clientHeight;

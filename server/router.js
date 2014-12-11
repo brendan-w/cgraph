@@ -10,9 +10,7 @@ module.exports = function(app) {
 
 	//dynamics
 	app.get ("/",               c.homePage);
-	app.post("/",               c.cloneAndParse);
+	app.get ("/select",         c.selectPage);
 	app.get ("/cgraph",         c.cgraphPage);
-	app.get ("/data/:giturl",   c.getData);
-	app.get ("/file",           c.getFile);
 };
 

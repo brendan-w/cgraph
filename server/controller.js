@@ -1,11 +1,11 @@
 
-var fs      = require('fs');
-var url     = require('url');
-var path    = require('path');
-var mkdirp  = require('mkdirp');
-var git     = require('gift');
-var util    = require('./util.js');
-var config  = require('./config.js');
+var fs        = require('fs');
+var url       = require('url');
+var path      = require('path');
+var mkdirp    = require('mkdirp');
+var GitHubApi = require('github');
+var util      = require('./util.js');
+var config    = require('./config.js');
 
 
 function sendError(res, message)
@@ -13,116 +13,68 @@ function sendError(res, message)
 	return res.status(400).json({error:message}).send();
 }
 
-function parseRepo(tpm_path, done)
-{
-	console.log("Parse");
-	done();
-}
 
-function updateRepo(res, git_url, tmp_path, done)
+function getC(user, repo, callback)
 {
-	//var dot_git = path.join(tmp_path, ".git");
-	repo = git(tmp_path);
-	repo.git("pull", {}, ["origin", "master"], function(err) {
+	var github = new GitHubApi({ version: "3.0.0" });
+	github.authenticate(config.github_auth);
+
+	github.repos.getBranch({
+		user: user,
+		repo: repo,
+		branch: "master",
+	}, function(err, branch) {
 		if(err)
 		{
 			console.log(err);
-			return sendError(res, "Failed to pull new updates for repo");
+			return callback("Error looking up master branch");
 		}
 		else
 		{
-			return done();
-		}
-	});
-}
-
-//new repo, must be cloned down
-function newRepo(res, git_url, tmp_path, done)
-{
-	mkdirp(tmp_path, function(err) {
-		if(err)
-		{
-			return sendError(res, 'Failed to make tmp directory. Invalid path?');
-		}
-		else
-		{
-			//clone the repo into the temp directory
-			git.clone(git_url, tmp_path, function(err, repo) {
+			github.gitdata.getTree({
+				user: user,
+				repo: repo,
+				sha: branch.commit.sha,
+				recursive: true,
+			}, function(err, tree) {
 				if(err)
 				{
 					console.log(err);
-					return sendError(res, "Failed to clone repository");
+					return callback("Error getting tree");
 				}
 				else
 				{
-					return done();
+					return callback(false, util.treeToC(tree));
 				}
 			});
 		}
 	});
 }
 
-//submission of new git URL
-module.exports.cloneAndParse = function(req, res) {
-	var user_repo = req.body.url;
-
-	if(!user_repo)
-		user_repo = "brendanwhitfield/senna";
-
-	var tmp_path = path.join(config.tmp_dir, user_repo);
-
-	if(!util.securePath(tmp_path, config.tmp_dir))
-		return sendError(res, 'Please specifiy valid path');
-
-	var git_url = url.resolve("git://github.com/", user_repo);
-	
-	fs.exists(tmp_path, function(exists) {
-
-		function done()
-		{
-			var query = "?repo=" + user_repo;
-			res.redirect("/cgraph" + query);
-		}
-
-		if(exists)
-			updateRepo(res, git_url, tmp_path, done);
-		else
-			newRepo(res, git_url, tmp_path, done);
-	});
-};
-
-
-//serves the JSON
-module.exports.getData = function(req, res) {
-
-
-};
-
-//serves the C files
-module.exports.getFile = function(req, res) {
-	var tmp_path = path.join(config.tmp_dir, req.query.name);
-	tmp_path = path.resolve(tmp_path);
-
-	if(!util.securePath(tmp_path, config.tmp_dir))
-		return sendError(res, 'Please specifiy valid path');
-
-	fs.readFile(tmp_path, 'utf-8', function(err, data) {
-		if(err)
-		{
-			console.log(err);
-			res.status(404).send("File not found");
-		}
-		else
-		{
-			res.send(data); //yup, totaly secure
-		}
-	});
-};
 
 module.exports.homePage = function(req, res) {
 	res.render('index');
 };
 
+module.exports.selectPage = function(req, res) {
+	var user = req.query.user ? req.query.user : "brendanwhitfield";
+	var repo = req.query.repo ? req.query.repo : "senna";
+
+	getC(user, repo, function(err, files) {
+		if(err)
+		{
+			console.log(err);
+			sendError(res, err);
+		}
+		else
+		{
+			res.render('select', { user:user, repo:repo, files:files });
+		}
+	});
+};
+
 module.exports.cgraphPage = function(req, res) {
+	console.log(req.query);
+
 	res.render('cgraph');
 };

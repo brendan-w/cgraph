@@ -29,14 +29,13 @@ h1, h2, h3, h4, h5, h6 {
   font-family: "Merriweather Sans", sans-serif;
 }
 
-h1 {
-  font-size: 22pt;
+h1 { font-size: 22pt; }
+
+
+.mono
+{
+  font-family: monospace;
 }
-
-
-/*
- *    Landing page
- */
 
 .center-outer
 {
@@ -49,63 +48,4 @@ h1 {
    display: table-cell;
    text-align: center;
    vertical-align: middle;
-}
-
-form#git-url
-{
-  display:inline-block;
-  padding: 20px;
-  background: #f5f2f0;
-}
-
-form#git-url #url
-{
-  margin-bottom: 20px;
-}
-
-form#git-url span, form#git-url input[type="text"]
-{
-  font-family: "Merriweather Sans", sans-serif;
-  font-size:1.25em;
-}
-
-
-
-/*
- *    VIZ
- */
-
-pre,
-code {
-  font-family: "Inconsolata", monospace;
-  font-size: 0.9em;
-}
-
-
-.column { float: left; }
-
-.viz_column  { width: 50%; }
-
-.code_column {
-  background: #f5f2f0;
-  padding-top: 1em;
-  width: 50%;
-}
-
-
-/*pre*/.code_block {
-  height: 100%;
-}
-
-/*Make pre tag wrap*/
-/*pre*/.wrap {
-  white-space: pre-wrap;       /* css-3 */
-  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;      /* Opera 4-6 */
-  white-space: -o-pre-wrap;    /* Opera 7 */
-  word-wrap: break-word;       /* Internet Explorer 5.5+ */
-}
-
-/*code*/.code_viewer {
-  overflow: auto;
 }

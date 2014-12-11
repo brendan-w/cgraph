@@ -1,0 +1,36 @@
+
+form#select-files
+{
+	display: inline-block;
+	padding:30px;
+	background: #DDD;
+	width:50%;
+	height:auto;
+	text-align:left;
+}
+
+form#select-files > *
+{
+	margin-bottom: 30px;
+}
+
+form#select-files > *:last-child
+{
+	margin-bottom: 0px;
+}
+
+#files
+{
+	height:20em;
+	overflow:auto;
+}
+
+.file
+{
+	display: block;
+	
+}
+
+
+.file                 { background-color: #EEE; }
+.file:nth-child(even) { background-color: #DDD; }

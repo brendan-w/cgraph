@@ -1,12 +1,17 @@
 extends ./base.jade
 
+block head
+  link(rel='stylesheet', type='text/css', href='/static/css/index.css')
+
 block body
   div.center-outer
     div.center-inner
-      form#git-url(action="/", method="POST")
+      form#git-url(action="/select", method="GET")
         #url
           span http://github.com/
-          input(type='text', name='url', placeholder='brendanwhitfield/senna')
+          input(type='text', name='user', placeholder='brendanwhitfield')
+          span /
+          input(type='text', name='repo', placeholder='senna')
         button(type='submit') Run
 
 block script
