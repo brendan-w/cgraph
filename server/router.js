@@ -9,8 +9,8 @@ module.exports = function(app) {
 	app.use('/node_modules/', express.static("node_modules/"));
 
 	//dynamics
-	app.get ("/",               c.homePage);
-	app.get ("/select",         c.selectPage);
-	app.get ("/cgraph",         c.cgraphPage);
+	app.get("/",       c.homePage);
+	app.get("/select", c.selectPage);
+	app.get("/cgraph", c.cgraphPage);
+	app.get("/file",   c.getFile);
 };
-

@@ -249,7 +249,7 @@ function drawCluster(d) {
 
 function on_node_click(d) {
   var filename = data.groups[d.group];
-  goto_line(filename, d.line);
+  goto_code(filename, d.line);
 }
 
 // these functions call init(); by declaring them here,

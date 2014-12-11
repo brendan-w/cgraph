@@ -1,6 +1,7 @@
 
-var util  = require('./util.js');
-var parse = require('./parser');
+var request = require('request');
+var util    = require('./util.js');
+var parse   = require('./parser');
 
 
 function sendError(res, message)
@@ -60,4 +61,25 @@ module.exports.cgraphPage = function(req, res) {
 		}
 	});
 
+};
+
+//bouncing these off the server to avoid some cross domain errors when developing locally
+module.exports.getFile = function(req, res) {
+	var user     = req.query.user;
+	var repo     = req.query.repo;
+	var filename = req.query.filename;
+
+	var url = "https://raw.githubusercontent.com/" + user + "/" + repo + "/master/" + filename;
+
+	request(url, function(err, response, body) {
+		if(err)
+		{
+			console.log(err);
+			return res.send("Failed to fetch the file");
+		}
+		else
+		{
+			return res.send(body);
+		}
+	});
 };

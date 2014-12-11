@@ -1,27 +1,39 @@
+
 var code_viewer = document.querySelector("#js_code_viewer");
+var currentFile = null;
 
-function goto_line(filename, line)
+
+function goto_line(line)
 {
-  // `line` is an optional variable, as filenames won't have this
-  if (line === undefined) line = 1;
-	// console.log(filename, line);
+	line = line || 1;
 
-	reqwest("/file?name=" + filename, function(res) {
-		code_viewer.innerHTML = res;
+	// If we're using syntax highlighting, update it on the new file
+	if(Prism) {
+		Prism.highlightElement(code_viewer);
+		line_number_tag = document.querySelector(".line-numbers-rows :nth-child(" + line + ")");
+		code_viewer.parentNode.scrollTop = line_number_tag.offsetTop;
+	}
 
-		// If we're using syntax highlighting, update it on the new file
-		if(Prism) {
-			Prism.highlightElement(code_viewer);
+	//console.log(line);
+	elem = document.querySelector(".line-numbers-rows :nth-child(" + line + ")");
+	elem.scrollIntoView();
+}
 
-      line_number_tag = document
-        .querySelector(".line-numbers-rows :nth-child(" + line + ")");
-      code_viewer.parentNode.scrollTop = line_number_tag.offsetTop;
-		}
-
-		//console.log(line);
-		elem = document.querySelector(".line-numbers-rows :nth-child(" + line + ")");
-		elem.scrollIntoView();
-	});
+function goto_code(filename, line)
+{
+	if(filename !== currentFile)
+	{
+		var url = "/file?user=" + user + "&repo=" + repo + "&filename=" + filename;
+		reqwest(url, function(body) {
+			code_viewer.innerHTML = body;
+			goto_line(line);
+			currentFile = filename;
+		});
+	}
+	else
+	{
+		goto_line(line);
+	}
 }
 
 var header      = document.querySelector("header");
