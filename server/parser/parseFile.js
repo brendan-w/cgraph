@@ -40,8 +40,6 @@
 
 */
 
-var fs = require("fs");
-
 var preproc      = require("./preprocessor.js");
 var tokenizer    = require("./tokenizer.js");
 var statementer  = require("./statementer.js");
@@ -49,10 +47,17 @@ var detect_defs  = require("./detect_defs.js");
 var detect_calls = require("./detect_calls.js");
 var loadCalls    = require("./loadCalls.js");
 
+/*
+	Accepts an object of the following format
 
-function parseFile(filename)
-{
-	var raw_c       = fs.readFileSync(filename).toString("utf8");
+	{
+		filename: "main.c"
+		content: "#include <iostream> ..."
+	}
+*/
+module.exports = function(file, callback) {
+
+	var raw_c       = file.content;
 	var c           = preproc(raw_c); //returns string of cleaned C code
 	var tokens      = tokenizer(c); //returns array of 'token' objects
 	var statements  = statementer(tokens); //returns array of statements (which are arrays of 'token' objects)
@@ -61,13 +66,9 @@ function parseFile(filename)
 	var map         = loadCalls(definitions, calls); //returns array of 'func' objects, matched with the functions they call
 
 	var output = {
-		"filename": filename,
+		"filename": file.filename,
 		"functions": map
 	};
 
-	// console.log(tokens);
-
-	return output;
-}
-
-module.exports = parseFile;
+	callback(false, output);
+};

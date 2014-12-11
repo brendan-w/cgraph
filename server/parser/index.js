@@ -21,52 +21,35 @@
 
 */
 
+
+var async     = require('async');
 var parseFile = require('./parseFile.js');
 var link      = require('./linker.js');
-var fs        = require('fs');
 
-
-function run(files) {
-	var maps = [];
+/*
+	Accepts list of objects like such:
+	[
+		{
+			filename: "main.c",
+			content: "#include <iostream> ..."
+		},
+		{
+			filename: "other.c",
+			content: "#include <iostream> ..."
+		},
+		...
+	]
+*/
+module.exports = function(files, callback) {
 
 	//parse the C for each file, and produce individual call graphs
-	files.forEach(function(f) {
-		maps.push(parseFile(f));
+	async.map(files, parseFile, function(err, results) {
+
+		//link each of the parsed files
+		var output = link(results);
+
+		//return JSON.stringify(output, function(k, v){return v;}, 4);
+		callback(false, output);
 	});
 
-	//link and return the file maps
-
-	var output = link(maps);
-
-	return JSON.stringify(output, function(k, v){return v;}, 4);
-}
-
-module.exports = run;
-
-//test
-
-var path_to_senna = "/home/brendan/Downloads/senna/";
-var output = run([
-	// "./tests/hash.c",
-	// "./tests/memmgr/memmgr.c",
-	// "./tests/memmgr/memmgr.h",
-	// "./tests/hello/hello.c",
-	// "./tests/hello/other.c",
-	path_to_senna + "SENNA_CHK.c",
-	path_to_senna + "SENNA_Hash.c",
-	path_to_senna + "SENNA_main.c",
-	path_to_senna + "SENNA_NER.c",
-	path_to_senna + "SENNA_nn.c",
-	path_to_senna + "SENNA_POS.c",
-	path_to_senna + "SENNA_PSG.c",
-	path_to_senna + "SENNA_PT0.c",
-	path_to_senna + "SENNA_Scores2Treillis.c",
-	path_to_senna + "SENNA_SRL.c",
-	path_to_senna + "SENNA_Tokenizer.c",
-	path_to_senna + "SENNA_Treillis.c",
-	path_to_senna + "SENNA_utils.c",
-	path_to_senna + "SENNA_VBS.c",
-]);
-
-console.log(output);
-fs.writeFileSync("output.json", output);
+};
