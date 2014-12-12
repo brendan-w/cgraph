@@ -2,6 +2,22 @@
  *    VIZ
  */
 
+
+header
+{
+  color:white;
+  background: #444;
+  padding:10px;
+}
+
+header > *
+{
+  display: inline-block;
+  margin-right:20px;
+}
+
+
+
 pre,
 code {
   font-family: "Inconsolata", monospace;

@@ -36,6 +36,7 @@ function goto_code(filename, line)
 	}
 }
 
+
 var header      = document.querySelector("header");
 var viz_column  = document.querySelector(".viz_column");
 var code_column = document.querySelector(".code_column");

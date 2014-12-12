@@ -1,11 +1,17 @@
 extends ./base.jade
 
 block head
-  link(rel='stylesheet', type='text/css', href='/static/css/viz.css')
+  link(rel='stylesheet', type='text/css', href='/static/css/cgraph.css')
   link(rel='stylesheet', type='text/css', href='/static/lib/prism-default.css')
 
 
 block body
+  header
+    h3 #{user}/#{repo}
+    span #{num_files} files
+    span #{num_funcs} functions
+    span #{num_calls} calls
+
   div.column.code_column
     //pre formatted means whitespace matters
     pre.code_block.line-numbers

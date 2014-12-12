@@ -11,15 +11,16 @@ block body
         input(type="hidden", name="user", value="#{user}")
         input(type="hidden", name="repo", value="#{repo}")
         
-        h1 #{user}/#{repo}
+        h4 #{user}/#{repo}
+
+        if files.length <= 0
+          .problem No C files found
 
         #files
           if files.length > 0
             each file in files
               label.file.mono
-                input(type="checkbox", name="#{file}")
+                input(type="checkbox", name="#{file}", checked)
                 span #{file}
-          else
-            .no-files No C files found
 
         button(type='submit') Run
