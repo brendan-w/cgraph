@@ -34,13 +34,6 @@ header #file_name
 
 
 
-pre,
-code {
-  font-family: "Inconsolata", monospace;
-  font-size: 0.9em;
-}
-
-
 .column { float: left; }
 
 .viz_column  { width: 50%; }

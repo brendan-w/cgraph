@@ -20,17 +20,19 @@ h1, h2, h3, h4, h5, h6 {
   /*font-family: "Merriweather Sans", sans-serif;*/
 }
 
-h1 { font-size: 26pt; }
-h2 { font-size: 24pt; }
-h3 { font-size: 20pt; }
+h1 { font-size: 30pt; }
+h2 { font-size: 26pt; }
+h3 { font-size: 22pt; }
 h4 { font-size: 18pt; }
 h5 { font-size: 16pt; }
 h6 { font-size: 14pt; }
 
 
-.mono
-{
-  font-family: monospace;
+pre,
+code,
+.mono {
+  font-family: "Inconsolata", monospace;
+  font-size: 0.9em;
 }
 
 .center-outer

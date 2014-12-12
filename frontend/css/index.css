@@ -27,25 +27,58 @@ header
 	border-bottom:1px solid #ddd;
 }
 
+header > *
+{
+	display: inline-block;
+	margin-right: 10px;
+}
+
 header h1
 {
-	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+header span
+{
+	font-size: 12pt;
+	opacity: 0.5;
 }
 
 
 
 form #url
 {
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 }
 
-form span, form input[type="text"]
+form .url
 {
 	font-size:14pt;
-	font-family: "Merriweather Sans", sans-serif;
 }
 
-form input[type="text"]
+form input.url, #samples span
 {
+	font-family: Arial, sans-serif;
 	width:10em;
+}
+
+#samples .url
+{
+	color:white;
+	cursor:pointer;
+	margin-bottom: 10px;
+}
+
+#samples .url span
+{
+	pointer-events:none;
+	color:#444;
+	display:inline-block;
+	text-align: left;
+
+	padding:4px 3px;
+
+	border-radius: 3px;
+	border:1px solid rgb(128, 255, 128);
+	background: rgb(230, 255, 230);
 }
