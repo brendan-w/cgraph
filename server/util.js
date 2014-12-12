@@ -39,7 +39,8 @@ module.exports.securePath = securePath;
 
 //thanks stackoverflow, for implementing what should be in the fs lib
 //http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
-function listC(dir, done) {
+function walkRepo(dir, done)
+{
 	var results = [];
 	fs.readdir(dir, function(err, list) {
 		if(err) return done(err);
@@ -53,7 +54,7 @@ function listC(dir, done) {
 				fs.stat(file, function(err, stat) {
 					if(stat && stat.isDirectory()) {
 						//dir, recurse
-						listC(file, function(err, res) {
+						walkRepo(file, function(err, res) {
 							results = results.concat(res);
 							if (!--pending) done(null, results);
 						});
@@ -72,9 +73,29 @@ function listC(dir, done) {
 
 		});
 	});
-};
-module.exports.listC = listC;
+}
 
+
+function listC(tmp_path, callback)
+{
+	walkRepo(tmp_path, function(err, results) {
+		if(err)
+		{
+			return callback(err);
+		}
+		else
+		{
+			//make all paths relative to the git directory
+			for(var f = 0; f < results.length; f++)
+			{
+				console.log(path.relative(tmp_path, results[f]));
+				results[f] = path.relative(tmp_path, results[f]);
+			}
+			return callback(null, results);
+		}
+	});
+}
+module.exports.listC = listC;
 
 
 
