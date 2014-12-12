@@ -26,27 +26,19 @@ module.exports.selectPage = function(req, res) {
 		}
 		else
 		{
-			util.listC(tmp_path, function(err, results) {
-				console.log(results);
-				return sendError(res, "success");
+			util.listC(tmp_path, function(err, files) {
+				if(err)
+				{
+					console.log(err);
+					sendError(res, err);
+				}
+				else
+				{
+					res.render('select', { user:user, repo:repo, files:files });
+				}
 			});
 		}
 	});
-
-
-	/*
-	util.listC(user, repo, function(err, files) {
-		if(err)
-		{
-			console.log(err);
-			sendError(res, err);
-		}
-		else
-		{
-			res.render('select', { user:user, repo:repo, files:files });
-		}
-	});
-	*/
 };
 
 module.exports.cgraphPage = function(req, res) {
@@ -63,16 +55,12 @@ module.exports.cgraphPage = function(req, res) {
 	}
 
 
-
-
-
-	/*
-	//download the C files
-	util.getC(user, repo, filenames, function(err, files) {
+	//load the C files
+	util.loadC(user, repo, filenames, function(err, files) {
 		if(err)
 		{
 			console.log(err);
-			return sendError(res, "Failed to download the requested files");
+			return sendError(res, "Failed to load the requested files from disk");
 		}
 		else
 		{
@@ -89,8 +77,6 @@ module.exports.cgraphPage = function(req, res) {
 			});
 		}
 	});
-	*/
-
 };
 
 //bouncing these off the server to avoid some cross domain errors when developing locally

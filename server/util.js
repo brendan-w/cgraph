@@ -39,10 +39,16 @@ module.exports.securePath = securePath;
 
 //thanks stackoverflow, for implementing what should be in the fs lib
 //http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
-function walkRepo(dir, done)
+
+//call with (root, callback)
+//current_dir is internal use only
+function listC(root, done, current_dir)
 {
 	var results = [];
-	fs.readdir(dir, function(err, list) {
+
+	current_dir = current_dir ? current_dir : root;
+
+	fs.readdir(current_dir, function(err, list) {
 		if(err) return done(err);
 		var pending = list.length;
 		if(!pending) return done(null, results);
@@ -50,19 +56,22 @@ function walkRepo(dir, done)
 
 			if(file !== '.git') //exclude all .git directories
 			{
-				file = dir + '/' + file;
+				file = current_dir + '/' + file;
 				fs.stat(file, function(err, stat) {
 					if(stat && stat.isDirectory()) {
 						//dir, recurse
-						walkRepo(file, function(err, res) {
+						listC(root, function(err, res) {
 							results = results.concat(res);
 							if (!--pending) done(null, results);
-						});
+						}, file);
 					} else {
 						//file
 						if (!--pending) done(null, results);	
 						if(path.extname(file).toLowerCase() === '.c')
-							results.push(file);
+						{
+							//could have used path.relative, but this is faster (to make the path relative to the repo)
+							results.push(file.substr(root.length + 1));
+						}
 					}
 				});
 			}
@@ -72,27 +81,6 @@ function walkRepo(dir, done)
 			}
 
 		});
-	});
-}
-
-
-function listC(tmp_path, callback)
-{
-	walkRepo(tmp_path, function(err, results) {
-		if(err)
-		{
-			return callback(err);
-		}
-		else
-		{
-			//make all paths relative to the git directory
-			for(var f = 0; f < results.length; f++)
-			{
-				console.log(path.relative(tmp_path, results[f]));
-				results[f] = path.relative(tmp_path, results[f]);
-			}
-			return callback(null, results);
-		}
 	});
 }
 module.exports.listC = listC;
@@ -165,17 +153,22 @@ module.exports.getRepo = function(user, repo, callback) {
 
 
 
-module.exports.getC = function(user, repo, filenames, callback) {
+module.exports.loadC = function(user, repo, filenames, callback) {
 
-	//create URLs for each raw file
-	var urls = [];
+	//create paths to each raw file
+	var file_paths = [];
 	for(var i = 0; i < filenames.length; i++)
 	{
-		urls.push("https://raw.githubusercontent.com/" + user + "/" + repo + "/master/" + filenames[i]);
+		var file = path.join(config.tmp_dir, user, repo, filenames[i]);
+
+		if(!securePath(file, config.tmp_dir))
+			return callback("Please specifiy valid path");
+		else
+			file_paths.push(file)
 	}
 
 	//download the files into memory
-	async.map(urls, request, function(err, results) {
+	async.map(file_paths, fs.readFile, function(err, data) {
 		if(err)
 		{
 			console.log(err);
@@ -183,26 +176,17 @@ module.exports.getC = function(user, repo, filenames, callback) {
 		}
 		else
 		{
-			var files = [];
-			for(var i = 0; i < results.length; i++)
-			{
-				var result = results[i];
+			var output_files = [];
 
-				if(result.statusCode == 200)
-				{
-					files.push({
-						filename: filenames[i],
-						content: result.body,
-					});
-				}
-				else
-				{
-					//do nothing
-					//files that dont return 200 simply won't show up
-				}
+			for(var i = 0; i < data.length; i++)
+			{
+				output_files.push({
+					filename: filenames[i],
+					content: data[i].toString('utf8'),
+				});
 			}
 
-			return callback(false, files);
+			return callback(null, output_files);
 		}
 	});
 };
