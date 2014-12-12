@@ -6,13 +6,29 @@
 header
 {
   color:white;
+  padding-top: 10px;
   background: #444;
-  padding:10px;
 }
 
-header > *
+header *
 {
   display: inline-block;
+}
+
+
+header #file_name
+{
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
+  background: #f5f2f0;
+
+  color:#666;
+  font-size: 12pt;
+  text-align: center;
+
+  min-width:10em;
+  padding:0.5em 1em;
+
   margin-right:20px;
 }
 
@@ -31,13 +47,13 @@ code {
 
 .code_column {
   background: #f5f2f0;
-  padding-top: 1em;
   width: 50%;
 }
 
 
 /*pre*/.code_block {
-  height: 100%;
+  padding-top: 1em;
+  height: 100%; /* initially, until it gets overriden by JS */
 }
 
 /*Make pre tag wrap*/

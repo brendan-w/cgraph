@@ -11,11 +11,13 @@
 html,
 body {
   height: 100%;
-  font-family: "Merriweather", serif;
+  /*font-family: "Merriweather", serif;*/
+  font-family: Arial, sans-serif;
+
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Merriweather Sans", sans-serif;
+  /*font-family: "Merriweather Sans", sans-serif;*/
 }
 
 h1 { font-size: 26pt; }
