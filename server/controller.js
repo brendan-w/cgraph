@@ -18,6 +18,23 @@ module.exports.selectPage = function(req, res) {
 	var user = req.query.user ? req.query.user : "brendanwhitfield";
 	var repo = req.query.repo ? req.query.repo : "senna";
 
+	util.getRepo(user, repo, function(err, tmp_path) {
+		if(err)
+		{
+			console.log(err);
+			return sendError(res, err);
+		}
+		else
+		{
+			util.listC(tmp_path, function(err, results) {
+				console.log(results);
+				return sendError(res, "success");
+			});
+		}
+	});
+
+
+	/*
 	util.listC(user, repo, function(err, files) {
 		if(err)
 		{
@@ -29,6 +46,7 @@ module.exports.selectPage = function(req, res) {
 			res.render('select', { user:user, repo:repo, files:files });
 		}
 	});
+	*/
 };
 
 module.exports.cgraphPage = function(req, res) {
@@ -44,6 +62,11 @@ module.exports.cgraphPage = function(req, res) {
 			filenames.push(key);
 	}
 
+
+
+
+
+	/*
 	//download the C files
 	util.getC(user, repo, filenames, function(err, files) {
 		if(err)
@@ -66,6 +89,7 @@ module.exports.cgraphPage = function(req, res) {
 			});
 		}
 	});
+	*/
 
 };
 
