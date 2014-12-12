@@ -1,28 +1,51 @@
 
 /*
- *    Landing page
+ *	Landing page
  */
 
 
-form#git-url
+form
 {
-  display:inline-block;
-  padding: 20px;
-  background: #DDD;
+	display:inline-block;
+	padding: 20px;
 }
 
-form#git-url #url
+form > *
 {
-  margin-bottom: 20px;
+	margin-bottom: 20px;
 }
 
-form#git-url span, form#git-url input[type="text"]
+form > *:last-child
 {
-  font-family: "Inconsolata", monospace;
-  font-size:1.25em;
+	margin-bottom: 0px;
 }
 
-form#git-url input[type="text"]
+header
 {
-  width:9em;
+	text-align: left;
+	padding-bottom: 20px;
+	border-bottom:1px solid #ddd;
+}
+
+header h1
+{
+	margin-bottom: 10px;
+}
+
+
+
+form #url
+{
+	margin-bottom: 20px;
+}
+
+form span, form input[type="text"]
+{
+	font-size:14pt;
+	font-family: "Merriweather Sans", sans-serif;
+}
+
+form input[type="text"]
+{
+	width:10em;
 }

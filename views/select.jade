@@ -6,7 +6,7 @@ block head
 block body
   div.center-outer
     div.center-inner
-      form#select-files(action="/cgraph", method="GET")
+      form.shadow(action="/cgraph", method="GET")
 
         input(type="hidden", name="user", value="#{user}")
         input(type="hidden", name="repo", value="#{repo}")
@@ -23,9 +23,3 @@ block body
             .no-files No C files found
 
         button(type='submit') Run
-
-block script
-  script(type='text/javascript').
-    var header     = document.querySelector("header");
-    var center     = document.querySelector(".center-outer");
-    center.style.height = window.innerHeight - header.clientHeight;

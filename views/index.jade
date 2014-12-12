@@ -6,16 +6,15 @@ block head
 block body
   div.center-outer
     div.center-inner
-      form#git-url(action="/select", method="GET")
+      form.shadow(action="/select", method="GET")
+        header
+          h1 C-Graph
+          p A function call graphing utility for C
+
         #url
           span http://github.com/
           input(type='text', name='user', placeholder='brendanwhitfield')
           span /
           input(type='text', name='repo', placeholder='senna')
-        button(type='submit') Run
 
-block script
-  script(type='text/javascript').
-    var header     = document.querySelector("header");
-    var center     = document.querySelector(".center-outer");
-    center.style.height = window.innerHeight - header.clientHeight;
+        button(type='submit') Next
