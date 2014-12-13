@@ -129,12 +129,12 @@ function listC(root, done, current_dir)
 						}, file);
 					} else {
 						//file
-						if (!--pending) done(null, results);	
 						if(path.extname(file).toLowerCase() === '.c')
 						{
 							//could have used path.relative, but this is faster (to make the path relative to the repo)
 							results.push(file.substr(root.length + 1));
 						}
+						if (!--pending) done(null, results);
 					}
 				});
 			}
