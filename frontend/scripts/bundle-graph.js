@@ -2,279 +2,31 @@ var min_node_radius = 8,
     max_node_radius = 16,
     min_link_width = 1,
     // Links should have a width no greater than the smallest node
-    max_link_width = min_node_radius - 4,
-    // cluster hull offset
+    max_link_width = min_node_radius - 2,
+    // cluster svg_hull offset
     off = 15,
     // reference to expanded clusters
     expand = {},
     data,
     net,
+    // D3 functions
     force,
-    hullg,
-    hull,
-    link,
-    linkg,
-    defs,
-    arrows,
-    nodeg,
-    svg_node,
     link_scale,
-    node_scale;
+    node_scale,
+    hull_line = d3.svg.line().interpolate("cardinal-closed").tension(0.95),
+    fill = d3.scale.category20();
 
-var curve = d3.svg.line()
-  .interpolate("cardinal-closed")
-  // Changes the hardness of the convex hull's angles/curves
-  .tension(0.95);
+// SVG elements
+var svg_hull_g, svg_hull,
+    svg_link_g, link,
+    defs, arrows,
+    svg_node_g, svg_node,
+    vis = d3.select(".viz_column").append("svg"),
+    pathgen = d3.svg.line().interpolate("basis"),
+    responsive_width = vis.property("parentNode").clientWidth,
+    responsive_height = vis.property("parentNode").clientHeight;
 
-var fill = d3.scale.category20();
-
-function log(object) {
-  // console.log prints a reference to the object, but sometimes we want
-  // to inspect the state of a variable frozen at the time of the call
-  // JSON.stringify serves this purpose
-  console.log(JSON.stringify(object, null, "\t"));
-}
-
-function nodeid(node) {
-  //if (node.size > 0 || node.is_group) {
-  if (node.is_group) {
-    // e.g. "_g_10_1"
-    //return "_g_" + node.group + "_" + node.expansion;
-    return "file_" + node.group;
-  }
-  else {
-    //return node.name;
-    return "func_" + node.id;
-  }
-}
-
-function linkid(link) {
-  var source = nodeid(link.source),
-      target = nodeid(link.target);
-
-  return source + "|" + target;
-}
-
-function get_group(node) {
-  return node.group;
-}
-
-function get_node(nodes, node_id) {
-  return nodes[node_id];
-}
-
-function cycleState(d) {
-  var g = d.group,
-      s = expand[g] || false;
-
-  s = s ? false : true;
-  expand[g] = s;
-  return expand[g];
-}
-
-// constructs the network to visualize
-function network(data) {
-  function checkNetworkState() {
-    log("");
-    log("Group Map");
-    console.log(group_map);
-    log(group_map);
-
-    log("Node Map");
-    log(node_map);
-
-    log("Link Map");
-    log(link_map);
-
-    log("Expanded Clusters");
-    log(expand);
-  }
-
-  expand = expand || {};
-  var node_data = build_node_data(data.nodes),
-      nodes     = node_data.nodes,
-      node_map  = node_data.node_map,
-      group_map = node_data.group_map,
-      link_map  = build_link_map(data.links, node_map),
-      links     = build_links(link_map);
-
-  //checkNetworkState();
-
-  console.log({ nodes: nodes, links: links });
-  return { nodes: nodes, links: links };
-}
-
-function build_node_data(node_ds) {
-  var nodes = [],
-      group_map = {},
-      node_map = {};
-
-  node_ds.forEach(function(node, k) {
-    var group_id = get_group(node),
-        node_id = nodeid(node),
-        // Expand is an object of the form {`group_id` : boolean}
-        expansion = expand[group_id] || false;
-        //console.log(expansion);
-
-    // Set a default group state if it hasn't already been initiated
-    if (!group_map[group_id]) {
-      group_map[group_id] = { group: group_id, size: 0, link_count: 0,
-                              nodes: [], expansion: expansion, is_group: true };
-    }
-
-    // if cluster expanded, the node should be directly visible
-    if (expansion) {
-      node_map[node_id] = node;
-      nodes.push(node);
-    }
-    // the node is part of a collapsed cluster
-    else {
-      if (group_map[group_id].size === 0) {
-        // if new cluster, add to set and position at centroid of leaf nodes
-        node_map[node_id] = group_map[group_id];
-
-        // Add the collapsed cluster to the list of nodes
-        node_map[nodeid(group_map[group_id])] = group_map[group_id];
-        nodes.push(group_map[group_id]);
-      }
-      // have element node point to group node:
-      else {
-        node_map[node_id] = group_map[group_id];
-      }
-      group_map[group_id].nodes.push(node_id);
-    }
-
-    // always count group size as we also use it to tweak the force graph
-    group_map[group_id].size += 1;
-    node.group_data = group_map[group_id];
-    node.link_count = 0;
-  });
-
-  return { nodes: nodes, node_map: node_map, group_map: group_map };
-}
-
-function build_link_map(links, node_map) {
-  var link_map = {};
-
-  //console.log("links");
-  //console.log(links);
-
-  //console.log("node_map");
-  //console.log(node_map);
-
-  links.forEach(function(current_link) {
-    var source = get_group(current_link.source),
-        target = get_group(current_link.target),
-        real_source,
-        real_target,
-        current_source,
-        current_target,
-        link_map_key,
-        link;
-
-    // While d3.layout.force does convert link.source and link.target NUMERIC
-    // values to direct node references, it doesn't for other attributes, such
-    // as .real_source, so we do not use indexes in node_map[] but direct node
-    // references to skip the d3.layout.force implicit links conversion later
-    // on and ensure that both .source/.target and .real_source/.real_target
-    // are of the same type and pointing at valid nodes.
-    real_source = nodeid(current_link.source);
-    real_target = nodeid(current_link.target);
-    // Real source tells us whether it's going to the file or the function node
-    source = node_map[real_source];
-    target = node_map[real_target];
-
-    // skip links from node to same (A-A); they are rendered as 0-length
-    // lines anyhow. Less links in array = faster animation.
-    if (source == target) return;
-
-    current_source = nodeid(source);
-    current_target = nodeid(target);
-
-    link_map_key = current_source + "|" + current_target;
-
-    if (link_map[link_map_key]) {
-      link = link_map[link_map_key];
-    }
-    else {
-      link = {source: source, target: target,
-              size: 0, distance: 0, key: link_map_key};
-      link_map[link_map_key] = link;
-    }
-
-    link.size += current_link.value;
-
-    // these are only useful for single-linked nodes, but we don't care;
-    // here we have everything we need at minimum cost.
-    if (link.size == 1) {
-      source.link_count++;
-      target.link_count++;
-    }
-  });
-
-  //console.log("link_map");
-  //console.log(link_map);
-
-  return link_map;
-}
-
-function build_links(link_map) {
-  links = [];
-  for (var key in link_map) {
-    links.push(link_map[key]);
-  }
-  return links;
-}
-
-function convexHulls(nodes, offset) {
-  var hulls = {};
-
-  // create point sets
-  for (var k = 0; k < nodes.length; k++) {
-    var n = nodes[k];
-    if (n.size) continue;
-    var i = get_group(n),
-        l = hulls[i] || (hulls[i] = []);
-
-    l.push([n.x-offset, n.y-offset]);
-    l.push([n.x-offset, n.y+offset]);
-    l.push([n.x+offset, n.y-offset]);
-    l.push([n.x+offset, n.y+offset]);
-  }
-
-  // create convex hulls
-  var hullset = [];
-  for (var j in hulls) {
-    hullset.push({ group: j, path: d3.geom.hull(hulls[j]) });
-  }
-
-  return hullset;
-}
-
-function drawCluster(d) {
-  return curve(d.path); // 0.85
-}
-
-function on_node_click(d) {
-  var filename = data.groups[d.group];
-  goto_code(filename, d.line);
-}
-
-// these functions call init(); by declaring them here,
-// they don't have the old init() as a closure any more.
-// This should save us some memory and cycles when using
-// this in a long-running setting.
-function on_node_dblclick(d) {
-  cycleState(d);
-  init();
-}
-
-var vis = d3.select(".viz_column").append("svg");
-var pathgen = d3.svg.line().interpolate("basis");
-var responsive_width = vis.property("parentNode").clientWidth;
-var responsive_height = vis.property("parentNode").clientHeight;
-//console.log("responsive_width", responsive_width);
-//console.log("responsive_height", responsive_height);
+main();
 
 function main() {
   var min_links, max_links, min_nodes, max_nodes;
@@ -303,9 +55,9 @@ function main() {
     .domain([min_links, max_links])
     .range([min_link_width, max_link_width]);
 
-  hullg = vis.append("g");
-  linkg = vis.append("g");
-  nodeg = vis.append("g");
+  svg_hull_g = vis.append("g");
+  svg_link_g = vis.append("g");
+  svg_node_g = vis.append("g");
   defs = vis.append("defs");
   arrows = defs.append("marker")
     .attr("id", "arrow-marker")
@@ -363,9 +115,9 @@ function init() {
     .nodes(net.nodes)
     .links(net.links)
     .size([responsive_width, responsive_height])
-    .linkDistance(function(link, i) {
-      var source = link.source,
-          target = link.target,
+    .linkDistance(function(a_link, i) {
+      var source = a_link.source,
+          target = a_link.target,
           source_group = source.group_data || source,
           target_group = target.group_data || target,
           source_is_group = source.size || 0,
@@ -412,8 +164,8 @@ function init() {
           link_dist = 100;
         }
       }
-      link.distance = link_dist;
-      return link.distance;
+      a_link.distance = link_dist;
+      return a_link.distance;
     })
     // Gravity & charge tweaked to separate the clusters
     .gravity(1.0)
@@ -431,8 +183,8 @@ function init() {
     .friction(0.7)
     .start();
 
-  hullg.selectAll("path.hull").remove();
-  hull = hullg.selectAll("path.hull")
+  svg_hull_g.selectAll("path.hull").remove();
+  svg_hull = svg_hull_g.selectAll("path.hull")
       .data(convexHulls(net.nodes, off))
       .enter().append("path")
         .attr("class", "hull")
@@ -440,7 +192,7 @@ function init() {
         .style("fill", function(d) { return fill(d.group); })
         .on("dblclick", on_node_dblclick);
 
-  link = linkg.selectAll("path.link").data(net.links, linkid);
+  link = svg_link_g.selectAll("path.link").data(net.links, get_link_id);
   link.exit().remove();
   link.enter().append("path")
     .attr("class", "link")
@@ -453,17 +205,24 @@ function init() {
     return link_scale(d.size) || 1;
   });
 
-  svg_node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
+  svg_node = svg_node_g.selectAll("circle.node").data(net.nodes, get_node_id);
   svg_node.exit().remove();
   svg_node.enter().append("circle")
       // if (d.size) || d.size > 0 when d is a group node.
       .attr("class", function(d) {
-        return "node" + (d.size > 0 ? d.expansion ? " link-expanded" : "" : " leaf");
+        if (d.size > 0) {
+          return "node link-exapnded";
+        }
+        else if (d.expansion) {
+          return "node";
+        }
+        else {
+          return "node leaf";
+        }
       })
       .attr("r", function(d) {
         // if group base size on number of internal nodes
         if (d.size) {
-          console.log(d.size);
           return node_scale(d.size);
         }
         else {
@@ -474,7 +233,9 @@ function init() {
       .attr("cy", function(d) { return d.y; })
       .style("fill", function(d) { return fill(d.group); })
       .on("dblclick", on_node_dblclick)
-      .on("click", on_node_click);
+      .on("click", on_node_click)
+      .on("mouseover", on_node_hover)
+      ;
 
   svg_node.call(force.drag);
 
@@ -629,8 +390,8 @@ function init() {
       n.qy = n.y;
     });
 
-    if (!hull.empty()) {
-      hull.data(convexHulls(net.nodes, off))
+    if (!svg_hull.empty()) {
+      svg_hull.data(convexHulls(net.nodes, off))
           .attr("d", drawCluster);
     }
 
@@ -639,6 +400,237 @@ function init() {
     svg_node.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
   });
+}
+
+function log(object) {
+  // console.log prints a reference to the object, but sometimes we want
+  // to inspect the state of a variable frozen at the time of the call
+  // JSON.stringify serves this purpose
+  console.log(JSON.stringify(object, null, "\t"));
+}
+
+function get_node_id(node) {
+  if (node.is_group) {
+    return "file_" + node.group;
+  }
+  else {
+    return "func_" + node.id;
+  }
+}
+
+function get_link_id(link) {
+  var source = get_node_id(link.source),
+      target = get_node_id(link.target);
+
+  return source + "|" + target;
+}
+
+function get_group(node) {
+  return node.group;
+}
+
+function get_node(nodes, node_id) {
+  return nodes[node_id];
+}
+
+function cycle_state(d) {
+  var g = d.group,
+      s = expand[g] || false;
+
+  s = s ? false : true;
+  expand[g] = s;
+  return expand[g];
+}
+
+// constructs the network to visualize
+function network(data) {
+  function checkNetworkState() {
+    log("");
+    log("Group Map");
+    console.log(group_map);
+    log(group_map);
+
+    log("Node Map");
+    log(node_map);
+
+    log("Link Map");
+    log(link_map);
+
+    log("Expanded Clusters");
+    log(expand);
+  }
+
+  expand = expand || {};
+  var node_data = build_node_data(data.nodes),
+      nodes     = node_data.nodes,
+      node_map  = node_data.node_map,
+      group_map = node_data.group_map,
+      link_map  = build_link_map(data.links, node_map),
+      links     = build_links(link_map);
+
+  //checkNetworkState();
+
+  console.log({ nodes: nodes, links: links });
+  return { nodes: nodes, links: links };
+}
+
+function build_node_data(node_ds) {
+  var nodes = [],
+      group_map = {},
+      node_map = {};
+
+  node_ds.forEach(function(node, k) {
+    var group_id = get_group(node),
+        node_id = get_node_id(node),
+        // Expand is an object of the form {`group_id` : boolean}
+        expansion = expand[group_id] || false;
+        //console.log(expansion);
+
+    // Set a default group state if it hasn't already been initiated
+    if (!group_map[group_id]) {
+      group_map[group_id] = { group: group_id, size: 0, link_count: 0,
+                              nodes: [], expansion: expansion, is_group: true };
+    }
+
+    // if cluster expanded, the node should be directly visible
+    if (expansion) {
+      node_map[node_id] = node;
+      nodes.push(node);
+    }
+    // the node is part of a collapsed cluster
+    else {
+      if (group_map[group_id].size === 0) {
+        // if new cluster, add to set and position at centroid of leaf nodes
+        node_map[node_id] = group_map[group_id];
+
+        // Add the collapsed cluster to the list of nodes
+        node_map[get_node_id(group_map[group_id])] = group_map[group_id];
+        nodes.push(group_map[group_id]);
+      }
+      // have element node point to group node:
+      else {
+        node_map[node_id] = group_map[group_id];
+      }
+      group_map[group_id].nodes.push(node_id);
+    }
+
+    // always count group size as we also use it to tweak the force graph
+    group_map[group_id].size += 1;
+    node.group_data = group_map[group_id];
+    node.link_count = 0;
+  });
+
+  return { nodes: nodes, node_map: node_map, group_map: group_map };
+}
+
+function build_link_map(links, node_map) {
+  var link_map = {};
+
+  links.forEach(function(current_link) {
+    var source = get_group(current_link.source),
+        target = get_group(current_link.target),
+        real_source,
+        real_target,
+        current_source,
+        current_target,
+        link_map_key,
+        link;
+
+    // While d3.layout.force does convert link.source and link.target NUMERIC
+    // values to direct node references, it doesn't for other attributes, such
+    // as .real_source, so we do not use indexes in node_map[] but direct node
+    // references to skip the d3.layout.force implicit links conversion later
+    // on and ensure that both .source/.target and .real_source/.real_target
+    // are of the same type and pointing at valid nodes.
+    real_source = get_node_id(current_link.source);
+    real_target = get_node_id(current_link.target);
+    // Real source tells us whether it's going to the file or the function node
+    source = node_map[real_source];
+    target = node_map[real_target];
+
+    // skip links from node to same (A-A); they are rendered as 0-length
+    // lines anyhow. Less links in array = faster animation.
+    if (source == target) return;
+
+    current_source = get_node_id(source);
+    current_target = get_node_id(target);
+
+    link_map_key = current_source + "|" + current_target;
+
+    if (link_map[link_map_key]) {
+      link = link_map[link_map_key];
+    }
+    else {
+      link = {source: source, target: target,
+              size: 0, distance: 0, key: link_map_key};
+      link_map[link_map_key] = link;
+    }
+
+    link.size += current_link.value;
+
+    if (link.size == 1) {
+      source.link_count++;
+      target.link_count++;
+    }
+  });
+
+  return link_map;
+}
+
+function build_links(link_map) {
+  links = [];
+  for (var key in link_map) {
+    links.push(link_map[key]);
+  }
+  return links;
+}
+
+function convexHulls(nodes, offset) {
+  var hulls = {};
+
+  // create point sets
+  for (var k = 0; k < nodes.length; k++) {
+    var n = nodes[k];
+    if (n.size) continue;
+    var i = get_group(n),
+        l = hulls[i] || (hulls[i] = []);
+
+    l.push([n.x-offset, n.y-offset]);
+    l.push([n.x-offset, n.y+offset]);
+    l.push([n.x+offset, n.y-offset]);
+    l.push([n.x+offset, n.y+offset]);
+  }
+
+  // create convex hulls
+  var hullset = [];
+  for (var j in hulls) {
+    hullset.push({
+      group: j,
+      path: d3.geom.hull(hulls[j]) });
+  }
+  return hullset;
+}
+
+function drawCluster(d) {
+  return hull_line(d.path);
+}
+
+function on_node_click(d) {
+  var filename = data.groups[d.group];
+  goto_code(filename, d.line);
+}
+
+// these functions call init(); by declaring them here
+// they don't have the old init() as a closure any more.
+// This should save us some memory and cycles when using
+// this in a long-running setting.
+function on_node_dblclick(d) {
+  cycle_state(d);
+  init();
+}
+
+function on_node_hover(d) {
+  console.log(d);
 }
 
 function link_arc(d) {
@@ -679,23 +671,10 @@ function from_polar(start, polar) {
   return [x, y];
 }
 
-function scale_vector(xy, mag, scale) {
-  vec = normalize_vector(xy, mag);
-  x = vec[0] * scale;
-  y = vec[1] * scale;
-  return [x, y];
+function neighboring(a, b) {
+// could be faster via lookup table...
+  return data.links.some(function(d) {
+    return (d.source === a && d.target === b) ||
+           (d.source === b && d.target === a);
+  });
 }
-
-function normalize_vector(xy, mag) {
-  x = xy[0] / mag;
-  y = xy[1] / mag;
-  return [x, y];
-}
-
-function rotate_vector(xy, theta) {
-  x = xy[0] * Math.cos(theta) - xy[1] * Math.sin(theta);
-  y = xy[0] * Math.sin(theta) + xy[1] * Math.cos(theta);
-  return [x, y];
-}
-
-main();

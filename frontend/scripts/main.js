@@ -1,4 +1,3 @@
-
 var file_name   = document.querySelector("#file_name");
 var code_viewer = document.querySelector("#js_code_viewer");
 var header      = document.querySelector("header");

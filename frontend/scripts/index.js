@@ -1,4 +1,3 @@
-
 window.onload = function() {
 	var samples    = document.querySelectorAll("div.url");
 	var user_input = document.querySelector("input[name='user']");
