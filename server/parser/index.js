@@ -25,7 +25,6 @@
 var async     = require('async');
 var parseFile = require('./parseFile.js');
 var link      = require('./linker.js');
-
 /*
 	Accepts list of objects like such:
 	[

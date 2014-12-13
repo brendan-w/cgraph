@@ -148,7 +148,18 @@ module.exports.listC = listC;
 
 
 
-
+/*
+	loads the given filenames from disk into memory
+	the callback returns (err, files)
+	where files =
+	[
+		{
+			filename: "main.c",
+			content: "#include <iostream> ..."
+		},
+		...
+	]
+*/
 module.exports.loadC = function(tmp_path, filenames, callback) {
 
 	//create paths to each raw file

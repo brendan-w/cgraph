@@ -112,12 +112,13 @@ module.exports = function(maps) {
 				var inPrivate = fileIdents[m][callName];
 				var inPublic  = publicIdents[callName];
 
-				if(inPrivate) //the called function exists in static scope
+				//using  !== undefined because 0 is a valid ID
+				if(inPrivate !== undefined) //the called function exists in static scope
 					incrementKey(calls, inPrivate);
-				else if(inPublic) //the called function exists in the global scope
+				else if(inPublic !== undefined) //the called function exists in the global scope
 					incrementKey(calls, inPublic);
-				else //the call does not exist in the project (probably an external library)
-					console.log("unlinked call: " + callName);
+				//else //the call does not exist in the project (probably an external library)
+					//console.log("unlinked call: " + callName);
 			}
 
 			for(var target in calls)
