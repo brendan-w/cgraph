@@ -1,7 +1,0 @@
-# domain set in your ~/.ssh/config
-# Host cgraph
-#   Hostname X.X.X.X
-#   User server_username
-
-server: cgraph_root
-remote_path: /usr/share/nginx/html/cgraph

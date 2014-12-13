@@ -1,17 +1,25 @@
-var height = 600,       // svg height
-    dr = 4,             // default point radius
-    off = 15,           // cluster hull offset
-    expand = {},        // expanded clusters
+var min_node_radius = 8,
+    max_node_radius = 16,
+    min_link_width = 1,
+    // Links should have a width no greater than the smallest node
+    max_link_width = min_node_radius - 4,
+    // cluster hull offset
+    off = 15,
+    // reference to expanded clusters
+    expand = {},
+    data,
     net,
     force,
     hullg,
     hull,
-    linkg,
     link,
+    linkg,
+    defs,
+    arrows,
     nodeg,
     svg_node,
-    // Probably should adjust these dyanmically with the data
-    link_scale = d3.scale.log().clamp(true).domain([1, 50]).range([1, 12]);
+    link_scale,
+    node_scale;
 
 var curve = d3.svg.line()
   .interpolate("cardinal-closed")
@@ -83,7 +91,7 @@ function network(data) {
   }
 
   expand = expand || {};
-  var node_data = determine_nodes(data.nodes),
+  var node_data = build_node_data(data.nodes),
       nodes     = node_data.nodes,
       node_map  = node_data.node_map,
       group_map = node_data.group_map,
@@ -96,7 +104,7 @@ function network(data) {
   return { nodes: nodes, links: links };
 }
 
-function determine_nodes(node_ds) {
+function build_node_data(node_ds) {
   var nodes = [],
       group_map = {},
       node_map = {};
@@ -269,22 +277,50 @@ var responsive_height = vis.property("parentNode").clientHeight;
 //console.log("responsive_height", responsive_height);
 
 function main() {
-  //data = json;
+  var min_links, max_links, min_nodes, max_nodes;
 
   // Change source and targets from id's to objects
-  // Do we really need this?
+  // Do we really need this? Seems to be the easiest way...
   for (var i = 0; i < data.links.length; i++) {
     o = data.links[i];
     o.source = data.nodes[o.source];
     o.target = data.nodes[o.target];
   }
 
+  net = network(data);
+  max_nodes = _.max(_.pluck(net.nodes, 'size'));
+  min_nodes = _.min(_.pluck(net.nodes, 'size'));
+  max_links = _.max(_.pluck(net.links, 'size'));
+  min_links = _.min(_.pluck(net.links, 'size'));
+
+  node_scale = d3.scale.log()
+    .clamp(true)
+    .domain([min_nodes, max_nodes])
+    .range([min_node_radius, max_node_radius]);
+
+  link_scale = d3.scale.log()
+    .clamp(true)
+    .domain([min_links, max_links])
+    .range([min_link_width, max_link_width]);
+
   hullg = vis.append("g");
   linkg = vis.append("g");
   nodeg = vis.append("g");
+  defs = vis.append("defs");
+  arrows = defs.append("marker")
+    .attr("id", "arrow-marker")
+    .attr("refX", 5)
+    .attr("refY", 5)
+    .attr("markerUnits", "userSpaceOnUse")
+    .attr("markerWidth", 10)
+    .attr("markerHeight", 10)
+    .attr("orient", "auto")
+  .append("path")
+    .attr("d", "M0,0 L0,10 L10,5 L0,0z");
 
   init();
 
+  // Fade in the vis after we initialize all the data
   vis.attr("opacity", 1e-6)
     .transition()
     .duration(1000)
@@ -322,7 +358,6 @@ function init() {
   if (force) force.stop();
 
   net = network(data);
-  //console.log(net);
 
   force = d3.layout.force()
     .nodes(net.nodes)
@@ -384,7 +419,7 @@ function init() {
     .gravity(1.0)
     // Charge is important to turn single-linked groups to the outside
     .charge(function(d, i) {
-      if (d.size > 3) {
+      if (d.size > 2) {
         // group node
         return -5000;
       } else {
@@ -409,7 +444,8 @@ function init() {
   link.exit().remove();
   link.enter().append("path")
     .attr("class", "link")
-    .attr("d", linkArc);
+    .attr("d", link_arc)
+    .attr("marker-end", function(d) { return "url(#arrow-marker)"; });
 
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
@@ -420,13 +456,19 @@ function init() {
   svg_node = nodeg.selectAll("circle.node").data(net.nodes, nodeid);
   svg_node.exit().remove();
   svg_node.enter().append("circle")
-      // if (d.size) -- d.size > 0 when d is a group node.
-      // d.size < 0 when d is a 'path helper node'.
+      // if (d.size) || d.size > 0 when d is a group node.
       .attr("class", function(d) {
         return "node" + (d.size > 0 ? d.expansion ? " link-expanded" : "" : " leaf");
       })
       .attr("r", function(d) {
-        return d.size > 0 ? d.size + dr : dr + 1;
+        // if group base size on number of internal nodes
+        if (d.size) {
+          console.log(d.size);
+          return node_scale(d.size);
+        }
+        else {
+          return min_node_radius;
+        }
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
@@ -549,7 +591,7 @@ function init() {
           dx,
           dy,
           /* styled border outer thickness and a bit */
-          r = (n.size > 0 ? n.size + dr : dr + 1) + 2;
+          r = (n.size > 0 ? n.size + min_node_radius : min_node_radius + 1) + 2;
 
       dx = 0;
       if (n.x < r)
@@ -592,21 +634,68 @@ function init() {
           .attr("d", drawCluster);
     }
 
-    link.attr("d", linkArc);
+    link.attr("d", link_arc);
 
     svg_node.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
   });
 }
 
-function linkArc(d) {
-  var dx = d.target.x - d.source.x,
-      dy = d.target.y - d.source.y,
-      dr = Math.sqrt(dx * dx + dy * dy);
+function link_arc(d) {
+  var source_r = node_scale(d.source.size) || min_node_radius,
+      target_r = node_scale(d.target.size) || min_node_radius,
+      source_x = d.source.x,
+      source_y = d.source.y,
+      target_x = d.target.x,
+      target_y = d.target.y,
+      dx = target_x - source_x,
+      dy = target_y - source_y,
+      length = Math.sqrt(dx * dx + dy * dy),
+      polar = to_polar(dx, dy),
+      polar_source = [polar[0], source_r],
+      cart_source,
+      polar_target = [polar[0], target_r+5],
+      cart_target;
 
-  return "M" + d.source.x + "," + d.source.y +
-         "A" + dr + "," + dr + " 0 0,1 " +
-         d.target.x + "," + d.target.y;
+  polar_source[0] -= Math.PI/4;
+  polar_target[0] += Math.PI/4;
+  cart_source = from_polar([source_x, source_y], polar_source);
+  cart_target = from_polar([target_x, target_y], polar_target);
+
+  return "M" + source_x + "," + source_y +
+         "A" + length + "," + length + " 0 0,1 " +
+         cart_target[0] + "," + cart_target[1];
+}
+
+function to_polar(x, y) {
+  var theta = Math.atan2(x, y),
+      mag = Math.sqrt(x * x + y * y);
+  return [theta, mag];
+}
+
+function from_polar(start, polar) {
+  x = start[0] + Math.cos(polar[0]) * polar[1];
+  y = start[1] - Math.sin(polar[0]) * polar[1];
+  return [x, y];
+}
+
+function scale_vector(xy, mag, scale) {
+  vec = normalize_vector(xy, mag);
+  x = vec[0] * scale;
+  y = vec[1] * scale;
+  return [x, y];
+}
+
+function normalize_vector(xy, mag) {
+  x = xy[0] / mag;
+  y = xy[1] / mag;
+  return [x, y];
+}
+
+function rotate_vector(xy, theta) {
+  x = xy[0] * Math.cos(theta) - xy[1] * Math.sin(theta);
+  y = xy[0] * Math.sin(theta) + xy[1] * Math.cos(theta);
+  return [x, y];
 }
 
 main();

@@ -7,7 +7,7 @@ var config      = require('./config.js');
 
 //setup
 var app = express();
-app.set('views', config.views_dir); 
+app.set('views', config.views_dir);
 app.set('view engine', 'jade');
 app.disable("x-powered-by");
 app.use(body_parser.urlencoded({
