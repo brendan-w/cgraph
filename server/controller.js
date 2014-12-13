@@ -80,7 +80,7 @@ module.exports.cgraphPage = function(req, res) {
 	}
 
 	//load the C files
-	util.loadC(user, repo, filenames, function(err, files) {
+	util.loadC(req.tmp_path, filenames, function(err, files) {
 		if(err)
 		{
 			console.log(err);
@@ -105,11 +105,8 @@ module.exports.cgraphPage = function(req, res) {
 
 //bouncing these off the server to avoid some cross domain errors when developing locally
 module.exports.getFile = function(req, res) {
-	var user     = req.query.user;
-	var repo     = req.query.repo;
-	var filename = req.query.filename;
 
-	var file_path = path.join(config.tmp_dir, user, repo, filename);
+	var file_path = path.join(req.tmp_path, req.query.filename);
 
 	//the middleware takes care of the user/repo, but not the filename, so we have to check again...
 	if(!util.securePath(file_path, config.tmp_dir))

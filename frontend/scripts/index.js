@@ -19,13 +19,18 @@ window.onload = function() {
 
 
 
-	var submit  = document.querySelector("button");
-	var problem = document.querySelector(".problem");
+	var submit   = document.querySelector("button");
+	var load_gif = document.querySelector("img.load");
+	var problem  = document.querySelector(".problem");
 
 	//instead of submitting a GET request to the next page
 	//this runs a test POST in order to cleanly display problems to the user
 	submit.onclick = function(e) {
 		e.preventDefault();
+
+		submit.style.display = "none";
+		load_gif.style.display = "inline-block";
+
 		reqwest({
 			url: '/',
 			method: 'POST',
@@ -37,6 +42,9 @@ window.onload = function() {
 			}
 			else
 			{
+				submit.style.display = "inline-block";
+				load_gif.style.display = "none";
+
 				problem.innerHTML = response.error;
 				problem.style.display = "block";
 			}

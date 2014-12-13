@@ -100,3 +100,8 @@ form input.url, #samples span
 	display:inline-block;
 	text-align: left;
 }
+
+img.load
+{
+	display: none;
+}

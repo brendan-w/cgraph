@@ -149,13 +149,13 @@ module.exports.listC = listC;
 
 
 
-module.exports.loadC = function(user, repo, filenames, callback) {
+module.exports.loadC = function(tmp_path, filenames, callback) {
 
 	//create paths to each raw file
 	var file_paths = [];
 	for(var i = 0; i < filenames.length; i++)
 	{
-		var file = path.join(config.tmp_dir, user, repo, filenames[i]);
+		var file = path.join(tmp_path, filenames[i]);
 
 		if(!securePath(file, config.tmp_dir))
 			return callback("Insecure or invalid file path");
