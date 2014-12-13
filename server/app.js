@@ -27,7 +27,7 @@ app.get("/file/:filename", function(req, res) {
 
 
 //start
-var server = app.listen(8000, function(err) {
+var server = app.listen(process.env.PORT || 8000, function(err) {
 	if(err)
 		console.log(err);
 	else
