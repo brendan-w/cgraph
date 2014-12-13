@@ -17,10 +17,8 @@ function securePath(dirty_path, root_dir)
 		return false;
 
 	//only allow the following characters
-	/*
-	if (!/^[a-z0-9\/_]+$/.test(dirty_path))
+	if (!/^[a-zA-Z0-9_\/\-\.]+$/.test(dirty_path))
 		return false;
-	*/
 
 	//if a root directory is specified, it MUST appear
 	if(root_dir)
@@ -47,7 +45,7 @@ function updateRepo(tmp_path, callback)
 		}
 		else
 		{
-			return callback(null, tmp_path);
+			return callback(null);
 		}
 	});
 }
@@ -71,7 +69,7 @@ function newRepo(tmp_path, git_url, callback)
 				}
 				else
 				{
-					return callback(null, tmp_path);
+					return callback(null);
 				}
 			});
 		}
@@ -160,7 +158,7 @@ module.exports.loadC = function(user, repo, filenames, callback) {
 		var file = path.join(config.tmp_dir, user, repo, filenames[i]);
 
 		if(!securePath(file, config.tmp_dir))
-			return callback("Please specifiy valid path");
+			return callback("Insecure or invalid file path");
 		else
 			file_paths.push(file)
 	}

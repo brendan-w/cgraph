@@ -48,7 +48,7 @@ header span
 
 form #url
 {
-	margin-bottom: 10px;
+	margin-bottom: 20px;
 }
 
 form .url
@@ -62,23 +62,41 @@ form input.url, #samples span
 	width:10em;
 }
 
+#samples
+{
+	overflow: hidden;
+}
+
 #samples .url
 {
-	color:white;
+	float:right;
+	clear:right;
 	cursor:pointer;
 	margin-bottom: 10px;
+
+	padding:3px 2px;
+	border-radius: 3px;
+
+	color:#999;
+	border:1px solid #999;
+}
+
+#samples .url:last-child
+{
+	margin-bottom: 0px;
+}
+
+#samples .url:hover
+{
+	color:black;
+	border:1px solid black;	
 }
 
 #samples .url span
 {
+	/* a hack to prevent children from stealing the parents mouse-events */
 	pointer-events:none;
-	color:#444;
+
 	display:inline-block;
 	text-align: left;
-
-	padding:4px 3px;
-
-	border-radius: 3px;
-	border:1px solid rgb(128, 255, 128);
-	background: rgb(230, 255, 230);
 }

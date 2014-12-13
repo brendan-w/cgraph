@@ -8,7 +8,18 @@ var parse   = require('./parser');
 
 function sendError(res, message)
 {
-	return res.status(400).json({error:message}).send();
+	return res.json({
+		success:false,
+		error:message,
+	});
+}
+
+function sendSuccess(res, redirect)
+{
+	return res.json({
+		success:true,
+		redirect:redirect,
+	});
 }
 
 
@@ -16,29 +27,41 @@ module.exports.homePage = function(req, res) {
 	res.render('index');
 };
 
-module.exports.selectPage = function(req, res) {
-	var user = req.query.user ? req.query.user : "brendanwhitfield";
-	var repo = req.query.repo ? req.query.repo : "senna";
+module.exports.getRepo = function(req, res) {
+	var user = req.body.user;
+	var repo = req.body.repo;
 
-	util.getRepo(user, repo, function(err, tmp_path) {
+	if(!user || !repo)
+	{
+		return sendError(res, "Both fields are required");
+	}
+
+	util.getRepo(user, repo, function(err) {
 		if(err)
 		{
 			console.log(err);
-			return sendError(res, err);
+			return sendError(res, "Not a valid github repository");
 		}
 		else
 		{
-			util.listC(tmp_path, function(err, files) {
-				if(err)
-				{
-					console.log(err);
-					sendError(res, err);
-				}
-				else
-				{
-					res.render('select', { user:user, repo:repo, files:files });
-				}
-			});
+			return sendSuccess(res, "/select?user=" + user + "&repo=" + repo);
+		}
+	});
+};
+
+module.exports.selectPage = function(req, res) {
+	var user = req.query.user;
+	var repo = req.query.repo;
+
+	util.listC(req.tmp_path, function(err, files) {
+		if(err)
+		{
+			console.log(err);
+			sendError(res, err);
+		}
+		else
+		{
+			res.render('select', { user:user, repo:repo, files:files });
 		}
 	});
 };
@@ -55,7 +78,6 @@ module.exports.cgraphPage = function(req, res) {
 		if(['user', 'repo'].indexOf(key) === -1)
 			filenames.push(key);
 	}
-
 
 	//load the C files
 	util.loadC(user, repo, filenames, function(err, files) {
@@ -89,6 +111,7 @@ module.exports.getFile = function(req, res) {
 
 	var file_path = path.join(config.tmp_dir, user, repo, filename);
 
+	//the middleware takes care of the user/repo, but not the filename, so we have to check again...
 	if(!util.securePath(file_path, config.tmp_dir))
 		return sendError(res, 'Please specifiy valid path');
 
