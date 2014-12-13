@@ -5,8 +5,6 @@ var git       = require('gift');
 var path      = require('path');
 var async     = require('async');
 var mkdirp    = require('mkdirp');
-var GitHubApi = require('github');
-var request   = require('request');
 var config    = require('./config.js');
 
 
@@ -35,57 +33,6 @@ function securePath(dirty_path, root_dir)
 	return true;
 }
 module.exports.securePath = securePath;
-
-
-//thanks stackoverflow, for implementing what should be in the fs lib
-//http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
-
-//call with (root, callback)
-//current_dir is internal use only
-function listC(root, done, current_dir)
-{
-	var results = [];
-
-	current_dir = current_dir ? current_dir : root;
-
-	fs.readdir(current_dir, function(err, list) {
-		if(err) return done(err);
-		var pending = list.length;
-		if(!pending) return done(null, results);
-		list.forEach(function(file) {
-
-			if(file !== '.git') //exclude all .git directories
-			{
-				file = current_dir + '/' + file;
-				fs.stat(file, function(err, stat) {
-					if(stat && stat.isDirectory()) {
-						//dir, recurse
-						listC(root, function(err, res) {
-							results = results.concat(res);
-							if (!--pending) done(null, results);
-						}, file);
-					} else {
-						//file
-						if (!--pending) done(null, results);	
-						if(path.extname(file).toLowerCase() === '.c')
-						{
-							//could have used path.relative, but this is faster (to make the path relative to the repo)
-							results.push(file.substr(root.length + 1));
-						}
-					}
-				});
-			}
-			else
-			{
-				if (!--pending) done(null, results);
-			}
-
-		});
-	});
-}
-module.exports.listC = listC;
-
-
 
 
 //repo already exists on filesystem, run a `git pull origin master`
@@ -150,6 +97,57 @@ module.exports.getRepo = function(user, repo, callback) {
 			newRepo(tmp_path, git_url, callback);
 	});
 };
+
+
+
+//thanks stackoverflow, for implementing what should be in the fs lib
+//http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
+
+//call with (root, callback)
+//current_dir is internal use only
+function listC(root, done, current_dir)
+{
+	var results = [];
+
+	current_dir = current_dir ? current_dir : root;
+
+	fs.readdir(current_dir, function(err, list) {
+		if(err) return done(err);
+		var pending = list.length;
+		if(!pending) return done(null, results);
+		list.forEach(function(file) {
+
+			if(file !== '.git') //exclude all .git directories
+			{
+				file = current_dir + '/' + file;
+				fs.stat(file, function(err, stat) {
+					if(stat && stat.isDirectory()) {
+						//dir, recurse
+						listC(root, function(err, res) {
+							results = results.concat(res);
+							if (!--pending) done(null, results);
+						}, file);
+					} else {
+						//file
+						if (!--pending) done(null, results);	
+						if(path.extname(file).toLowerCase() === '.c')
+						{
+							//could have used path.relative, but this is faster (to make the path relative to the repo)
+							results.push(file.substr(root.length + 1));
+						}
+					}
+				});
+			}
+			else
+			{
+				if (!--pending) done(null, results);
+			}
+
+		});
+	});
+}
+module.exports.listC = listC;
+
 
 
 

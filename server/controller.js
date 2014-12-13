@@ -1,6 +1,8 @@
 
-var request = require('request');
+var fs      = require('fs');
+var path    = require('path');
 var util    = require('./util.js');
+var config  = require('./config.js');
 var parse   = require('./parser');
 
 
@@ -85,17 +87,20 @@ module.exports.getFile = function(req, res) {
 	var repo     = req.query.repo;
 	var filename = req.query.filename;
 
-	var url = "https://raw.githubusercontent.com/" + user + "/" + repo + "/master/" + filename;
+	var file_path = path.join(config.tmp_dir, user, repo, filename);
 
-	request(url, function(err, response, body) {
+	if(!util.securePath(file_path, config.tmp_dir))
+		return sendError(res, 'Please specifiy valid path');
+
+	fs.readFile(file_path, function(err, data) {
 		if(err)
 		{
 			console.log(err);
-			return res.send("Failed to fetch the file");
+			res.status(404).send("File not found");
 		}
 		else
 		{
-			return res.send(body);
+			res.send(data.toString('utf8'));
 		}
 	});
 };
