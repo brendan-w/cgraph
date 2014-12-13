@@ -17,9 +17,11 @@ function Call(token)
 //test for a function call starting at the given token index
 function testFuncDecl(statement, start, parenLevel)
 {
+	var t = statement.length;
+
 	if(statement[start].type === types.IDENTIFIER) //function name
 	{
-		if(statement[start+1].type === types.OPEN_PAREN) //open paren
+		if(((start+1) < t) && (statement[start+1].type === types.OPEN_PAREN)) //open paren
 		{
 			//find matching paren
 			var close = matchParen(statement, start+1);

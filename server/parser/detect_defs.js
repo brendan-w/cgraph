@@ -18,16 +18,18 @@ function Func(token, storage, endToken)
 //test for a function definition at the given token index
 function testFuncDef(statement, start)
 {
+	var t = statement.length;
+
 	if(statement[start].type === types.IDENTIFIER) //function name
 	{
-		if(statement[start+1].type === types.OPEN_PAREN) //open paren
+		if(((start+1) < t) && (statement[start+1].type === types.OPEN_PAREN)) //open paren
 		{
 			//find matching paren
 			var close = matchParen(statement, start+1);
 
 			if(close !== -1) //close paren
 			{
-				if(statement[close+1].type === types.OPEN_BRACKET) //open bracket
+				if(((close+1) < t) && (statement[close+1].type === types.OPEN_BRACKET)) //open bracket
 				{
 					//ghostbusters: "weeee GOT ONE!!!"
 					return true;
