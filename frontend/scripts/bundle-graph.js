@@ -238,6 +238,7 @@ function init() {
       .on("dblclick", on_node_dblclick)
       .on("click", on_node_click)
       .on("mouseover", on_node_hover)
+      .on("mouseout", on_node_out)
       ;
 
   svg_node.call(force.drag);
@@ -245,7 +246,7 @@ function init() {
 
   force.on("tick", tick);
 
-  console.log(force.nodes());
+  //console.log(force.nodes());
   svg_text = svg_text_g.selectAll("text")
     .data(_.filter(force.nodes(), function(n) { return n.size;} ));
   svg_text.exit().remove();
@@ -466,19 +467,19 @@ function cycle_state(d) {
 // constructs the network to visualize
 function network(data) {
   function checkNetworkState() {
-    log("");
-    log("Group Map");
-    console.log(group_map);
-    log(group_map);
+    //log("");
+    //log("Group Map");
+    //console.log(group_map);
+    //log(group_map);
 
-    log("Node Map");
-    log(node_map);
+    //log("Node Map");
+    //log(node_map);
 
     log("Link Map");
-    log(link_map);
+    console.log(link_map);
 
-    log("Expanded Clusters");
-    log(expand);
+    //log("Expanded Clusters");
+    //log(expand);
   }
 
   expand = expand || {};
@@ -651,8 +652,26 @@ function on_node_dblclick(d) {
 }
 
 function on_node_hover(d) {
-  console.log(d, this);
-  //d.attr("opacity", 1);
+  console.log(d);
+  //var connected_links = _.filter(links, function(n) {
+    //return n.key.split("|")[0] === get_node_id(d);
+  //});
+
+  svg_link
+    .transition()
+    .duration(300)
+    .style("opacity", function(o) {
+      return connected_link(d, o) ? 1 : 0.35;
+    })
+    ;
+}
+
+function on_node_out(d) {
+  svg_link.style("opacity", 1);
+}
+
+function connected_link(a, b) {
+  return get_node_id(a) === b.key.split("|")[0];
 }
 
 function link_arc(d) {
