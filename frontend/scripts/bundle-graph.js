@@ -18,7 +18,8 @@ var min_node_radius = 8,
 
 // SVG elements
 var svg_hull_g, svg_hull,
-    svg_link_g, link,
+    svg_link_g, svg_link,
+    svg_text_g, svg_text,
     defs, arrows,
     svg_node_g, svg_node,
     vis = d3.select(".viz_column").append("svg"),
@@ -58,6 +59,7 @@ function main() {
   svg_hull_g = vis.append("g");
   svg_link_g = vis.append("g");
   svg_node_g = vis.append("g");
+  svg_text_g = vis.append("g");
   defs = vis.append("defs");
   arrows = defs.append("marker")
     .attr("id", "arrow-marker")
@@ -105,7 +107,8 @@ function init() {
       xquant = 1,
       yquant = 1,
       xqthresh,
-      yqthresh;
+      yqthresh,
+      change_squared;
 
   if (force) force.stop();
 
@@ -192,16 +195,16 @@ function init() {
         .style("fill", function(d) { return fill(d.group); })
         .on("dblclick", on_node_dblclick);
 
-  link = svg_link_g.selectAll("path.link").data(net.links, get_link_id);
-  link.exit().remove();
-  link.enter().append("path")
+  svg_link = svg_link_g.selectAll("path.link").data(net.links, get_link_id);
+  svg_link.exit().remove();
+  svg_link.enter().append("path")
     .attr("class", "link")
     .attr("d", link_arc)
     .attr("marker-end", function(d) { return "url(#arrow-marker)"; });
 
   // both existing and enter()ed links may have changed stroke width due to
   // expand state change somewhere:
-  link.style("stroke-width", function(d) {
+  svg_link.style("stroke-width", function(d) {
     return link_scale(d.size) || 1;
   });
 
@@ -239,167 +242,185 @@ function init() {
 
   svg_node.call(force.drag);
 
-  var change_squared;
 
-  force.on("tick", function(e) {
-   //Force all nodes with only one link to point outwards.
+  force.on("tick", tick);
 
-    //To do this, we first calculate the center mass (okay, we wing it, we fake
-    //node 'weight'), then see whether the target node for links from single-link
-    //nodes is closer to the center-of-mass than us, and if it isn't, we push
-    //the node outwards.
+  console.log(force.nodes());
+  svg_text = svg_text_g.selectAll("text")
+    .data(_.filter(force.nodes(), function(n) { return n.size;} ));
+  svg_text.exit().remove();
+  svg_text.enter().append("text")
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { return d.y; })
+      .text(function(d) {
+        if (d.size)
+          return data.groups[d.group];
+      });
+}
 
-    var center = {x: 0, y: 0, weight: 0},
-        singles = [],
-        size,
-        c,
-        k,
-        mx,
-        my,
-        dx,
-        dy,
-        alpha;
+function tick(e) {
+  //Force all nodes with only one link to point outwards.
 
-    net.nodes.forEach(function(n) {
-      var w = Math.max(1, n.size || 0, n.weight || 0);
+  // To do this, we first calculate the center mass (okay, we wing it, we
+  // fake node 'weight'), then see whether the target node for links from
+  // single-link nodes is closer to the center-of-mass than us, and if it
+  // isn't, we push the node outwards.
 
-      center.x += w * n.x;
-      center.y += w * n.y;
-      center.weight += w;
+  var center = {x: 0, y: 0, weight: 0},
+      singles = [],
+      size,
+      c, k,
+      mx, my,
+      dx, dy,
+      alpha;
 
-      if (n.size > 0 ? n.link_count < 4 : n.group_data.link_count < 3)
-        singles.push(n);
-    });
+  net.nodes.forEach(function(n) {
+    var w = Math.max(1, n.size || 0, n.weight || 0);
 
-    size = force.size();
+    center.x += w * n.x;
+    center.y += w * n.y;
+    center.weight += w;
 
-    mx = size[0] / 2;
-    my = size[1] / 2;
+    if (n.size > 0 ? n.link_count < 4 : n.group_data.link_count < 3)
+      singles.push(n);
+  });
 
-    singles.forEach(function(n) {
-      var k,
-          x,
-          y,
-          alpha,
-          power,
-          dx,
-          dy,
-          n_is_group = n.size || 0,
-          w = Math.max(1, n.size || 0, n.weight || 0);
+  size = force.size();
 
-      // haven't decided what to do for unconnected nodes, yet...
-      if (n.link_count === 0) {
-        return;
-      }
+  mx = size[0] / 2;
+  my = size[1] / 2;
 
-      // apply amplification of the 'original' alpha:
-      // 1.0 for singles and double-connected nodes, close to 0 for highly
-      // connected nodes, rapidly decreasing. Use this as we want to give those
-      // 'non-singles' a little bit of the same 'push out' treatment. Reduce
-      // effect for 'real nodes' which are singles:
-      // they need much less encouragement!
-      if (n_is_group) {
-        power = Math.max(2, n.link_count);
-      }
-      else {
-        power = Math.max(2, n.group_data.link_count);
-      }
+  singles.forEach(function(n) {
+    var k, x, y,
+        alpha,
+        power,
+        dx, dy,
+        n_is_group = n.size || 0,
+        w = Math.max(1, n.size || 0, n.weight || 0);
 
-      power = 2 / power;
-      alpha = e.alpha * power;
+    // Just let unconnected nodes float in the hull
+    if (n.link_count === 0) return;
 
-      // undo/revert gravity forces (or as near as we can get, here)
-      // revert for truly single nodes, revert just a wee little bit for
-      // dual linked nodes,
-      // only reduce ever so slightly for nodes with few links (~ 3) that made
-      // it into this 'singles' selection
-      k = alpha * force.gravity() * (0.8 + power);
-
-      if (k) {
-        dx = (mx - n.x) * k;
-        dy = (my - n.y) * k;
-        n.x -= dx;
-        n.y -= dy;
-
-        center.x -= dx * w;
-        center.y -= dy * w;
-      }
-    });
-
-    // move the entire graph so that its center of mass sits at the center
-    center.x /= center.weight;
-    center.y /= center.weight;
-
-    dx = mx - center.x;
-    dy = my - center.y;
-
-    alpha = e.alpha * 5;
-    dx *= alpha;
-    dy *= alpha;
-
-    net.nodes.forEach(function(n) {
-      n.x += dx;
-      n.y += dy;
-    });
-
-    change_squared = 0;
-
-    // fixup .px/.py so drag behaviour and annealing get the correct values, as
-    // force.tick() would expect .px and .py to be the .x and .y of yesterday.
-    net.nodes.forEach(function(n) {
-      // restrain all nodes to window area
-      var k,
-          dx,
-          dy,
-          /* styled border outer thickness and a bit */
-          r = (n.size > 0 ? n.size + min_node_radius : min_node_radius + 1) + 2;
-
-      dx = 0;
-      if (n.x < r)
-        dx = r - n.x;
-      else if (n.x > size[0] - r)
-        dx = size[0] - r - n.x;
-
-      dy = 0;
-      if (n.y < r)
-        dy = r - n.y;
-      else if (n.y > size[1] - r)
-        dy = size[1] - r - n.y;
-
-      k = 1.2;
-
-      n.x += dx * k;
-      n.y += dy * k;
-      // restraining completed
-
-      // fixes 'elusive' node behaviour when hovering with the mouse (related
-      // to force.drag)
-      if (n.fixed) {
-        // 'elusive behaviour' ~ move mouse near node and node would take off,
-        // i.e. act as an elusive creature.
-        n.x = n.px;
-        n.y = n.py;
-      }
-      n.px = n.x;
-      n.py = n.y;
-
-      // plus copy for faster stop check
-      change_squared += (n.qx - n.x) * (n.qx - n.x);
-      change_squared += (n.qy - n.y) * (n.qy - n.y);
-      n.qx = n.x;
-      n.qy = n.y;
-    });
-
-    if (!svg_hull.empty()) {
-      svg_hull.data(convexHulls(net.nodes, off))
-          .attr("d", drawCluster);
+    // apply amplification of the 'original' alpha:
+    // 1.0 for singles and double-connected nodes, close to 0 for highly
+    // connected nodes, rapidly decreasing. Use this as we want to give those
+    // 'non-singles' a little bit of the same 'push out' treatment. Reduce
+    // effect for 'real nodes' which are singles:
+    // they need much less encouragement!
+    if (n_is_group) {
+      power = Math.max(2, n.link_count);
+    }
+    else {
+      power = Math.max(2, n.group_data.link_count);
     }
 
-    link.attr("d", link_arc);
+    power = 2 / power;
+    alpha = e.alpha * power;
 
-    svg_node.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+    // undo/revert gravity forces (or as near as we can get, here)
+    // revert for truly single nodes, revert just a wee little bit for
+    // dual linked nodes,
+    // only reduce ever so slightly for nodes with few links (~ 3) that made
+    // it into this 'singles' selection
+    k = alpha * force.gravity() * (0.8 + power);
+
+    if (k) {
+      dx = (mx - n.x) * k;
+      dy = (my - n.y) * k;
+      n.x -= dx;
+      n.y -= dy;
+
+      center.x -= dx * w;
+      center.y -= dy * w;
+    }
   });
+
+  // move the entire graph so that its center of mass sits at the center
+  center.x /= center.weight;
+  center.y /= center.weight;
+
+  dx = mx - center.x;
+  dy = my - center.y;
+
+  alpha = e.alpha * 5;
+  dx *= alpha;
+  dy *= alpha;
+
+  net.nodes.forEach(function(n) {
+    n.x += dx;
+    n.y += dy;
+  });
+
+  change_squared = 0;
+
+  // fixup .px/.py so drag behaviour and annealing get the correct values, as
+  // force.tick() would expect .px and .py to be the .x and .y of yesterday.
+  net.nodes.forEach(function(n) {
+    // restrain all nodes to window area
+    var k,
+        dx,
+        dy,
+        /* styled border outer thickness and a bit */
+        r = (n.size > 0 ? n.size + min_node_radius : min_node_radius + 1) + 2;
+
+    dx = 0;
+    if (n.x < r)
+      dx = r - n.x;
+    else if (n.x > size[0] - r)
+      dx = size[0] - r - n.x;
+
+    dy = 0;
+    if (n.y < r)
+      dy = r - n.y;
+    else if (n.y > size[1] - r)
+      dy = size[1] - r - n.y;
+
+    k = 1.2;
+
+    n.x += dx * k;
+    n.y += dy * k;
+    // restraining completed
+
+    // fixes 'elusive' node behaviour when hovering with the mouse (related
+    // to force.drag)
+    if (n.fixed) {
+      // 'elusive behaviour' ~ move mouse near node and node would take off,
+      // i.e. act as an elusive creature.
+      n.x = n.px;
+      n.y = n.py;
+    }
+    n.px = n.x;
+    n.py = n.y;
+
+    // plus copy for faster stop check
+    change_squared += (n.qx - n.x) * (n.qx - n.x);
+    change_squared += (n.qy - n.y) * (n.qy - n.y);
+    n.qx = n.x;
+    n.qy = n.y;
+  });
+
+  if (!svg_hull.empty()) {
+    svg_hull.data(convexHulls(net.nodes, off))
+        .attr("d", drawCluster);
+  }
+
+  svg_link.attr("d", link_arc);
+
+  svg_node.attr("cx", function(d) { return d.x; })
+          .attr("cy", function(d) { return d.y; })
+          ;
+
+  svg_text.attr("x", function(d) {
+            var r = node_scale(d.size) || min_node_radius;
+            return d.x + r + 5;
+          })
+          .attr("y", function(d) { return d.y; })
+          //.attr("opacity", function(d) {
+            //// Only show file nodes by default
+            //if (!d.size) return 0;
+            //else return 1;
+          //})
+          ;
 }
 
 function log(object) {
@@ -630,10 +651,14 @@ function on_node_dblclick(d) {
 }
 
 function on_node_hover(d) {
-  console.log(d);
+  console.log(d, this);
+  //d.attr("opacity", 1);
 }
 
 function link_arc(d) {
+  // Draw arcs between the nodes d.source and d.target, but do so from the
+  // edge of the nodes radius at a 45 degree angle from the direct line.
+  // This is so the arrow heads are not hidden by really large nodes
   var source_r = node_scale(d.source.size) || min_node_radius,
       target_r = node_scale(d.target.size) || min_node_radius,
       source_x = d.source.x,
