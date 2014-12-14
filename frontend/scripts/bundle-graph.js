@@ -467,19 +467,19 @@ function cycle_state(d) {
 // constructs the network to visualize
 function network(data) {
   function checkNetworkState() {
-    //log("");
-    //log("Group Map");
-    //console.log(group_map);
-    //log(group_map);
+    log("");
+    log("Group Map");
+    console.log(group_map);
+    log(group_map);
 
-    //log("Node Map");
-    //log(node_map);
+    log("Node Map");
+    log(node_map);
 
     log("Link Map");
     console.log(link_map);
 
-    //log("Expanded Clusters");
-    //log(expand);
+    log("Expanded Clusters");
+    log(expand);
   }
 
   expand = expand || {};
@@ -491,8 +491,7 @@ function network(data) {
       links     = build_links(link_map);
 
   //checkNetworkState();
-
-  console.log({ nodes: nodes, links: links });
+  //console.log({ nodes: nodes, links: links });
   return { nodes: nodes, links: links };
 }
 
@@ -506,7 +505,6 @@ function build_node_data(node_ds) {
         node_id = get_node_id(node),
         // Expand is an object of the form {`group_id` : boolean}
         expansion = expand[group_id] || false;
-        //console.log(expansion);
 
     // Set a default group state if it hasn't already been initiated
     if (!group_map[group_id]) {
@@ -652,7 +650,7 @@ function on_node_dblclick(d) {
 }
 
 function on_node_hover(d) {
-  console.log(d);
+  //console.log(d);
   //var connected_links = _.filter(links, function(n) {
     //return n.key.split("|")[0] === get_node_id(d);
   //});
@@ -661,7 +659,7 @@ function on_node_hover(d) {
     .transition()
     .duration(300)
     .style("opacity", function(o) {
-      return connected_link(d, o) ? 1 : 0.35;
+      return connected_link(d, o) ? 1 : 0.15;
     })
     ;
 }
