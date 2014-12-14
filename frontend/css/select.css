@@ -1,12 +1,13 @@
+
 body {
-  background: #f5f2f0;
+	background: #f5f2f0;
 }
 
 form
 {
+	background: white;
 	display:inline-block;
 	padding: 20px;
-
 	width:50%;
 	max-width:500px;
 }
