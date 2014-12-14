@@ -32,6 +32,23 @@ header #file_name
   margin-right:20px;
 }
 
+/*h5*/.logo {
+  margin-right: 20px;
+  float: right;
+}
+
+/*h5*/.logo a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.cf{
+    &:after{
+        content:"";
+        display:table;
+        clear:both;
+    }
+}
 
 
 .column { float: left; }
@@ -97,7 +114,7 @@ circle {
 text {
   font: 12px sans-serif;
   pointer-events: none;
-  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff; 
+  text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
 
 circle.node {

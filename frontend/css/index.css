@@ -3,11 +3,15 @@
  *	Landing page
  */
 
+body {
+  background: #f5f2f0;
+}
 
 form
 {
 	display:inline-block;
 	padding: 20px;
+	background: #fff;
 }
 
 form > *
