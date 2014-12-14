@@ -36,6 +36,11 @@ module.exports.getRepo = function(req, res) {
 		return sendError(res, "Both fields are required");
 	}
 
+	if(user === "torvalds" && repo === "linux")
+	{
+		return sendError(res, "I'm sorry, Dave. I'm afraid I can't do that.");
+	}
+
 	util.getRepo(user, repo, function(err) {
 		if(err)
 		{

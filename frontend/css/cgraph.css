@@ -51,7 +51,11 @@ header #file_name
 }
 
 
-.column { float: left; }
+.column
+{
+  float: left;
+  position: relative; /* needed to make absolute alignment stay with column */
+}
 
 .viz_column  { width: 50%; }
 
@@ -77,6 +81,15 @@ header #file_name
 
 /*code*/.code_viewer {
   overflow: auto;
+}
+
+.viz_column .info {
+  position: absolute;
+  top:2px;
+  left:2px;
+
+  font-size: 10pt;
+  color:#888;
 }
 
 
