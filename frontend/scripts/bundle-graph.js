@@ -254,8 +254,10 @@ function init() {
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
-        if (d.size)
-          return data.groups[d.group];
+        if (d.size) {
+          var filepath = data.groups[d.group].split("/");
+          return filepath[filepath.length-1];
+        }
       });
 }
 
