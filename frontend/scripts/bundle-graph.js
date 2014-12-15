@@ -660,6 +660,18 @@ function on_node_click(d) {
 function on_node_dblclick(d) {
   cycle_state(d);
   init();
+
+  svg_text
+    .transition()
+    .duration(300)
+    //.style("opacity", 1)
+    .style("opacity", function(o) {
+      if(o.size === undefined)
+        return o == d ? 1 : 0;
+      else
+        return 1;
+    })
+    ;
 }
 
 function on_node_hover(d) {
@@ -679,6 +691,7 @@ function on_node_hover(d) {
   svg_text
     .transition()
     .duration(300)
+    //.style("opacity", 1)
     .style("opacity", function(o) {
       if(o.size === undefined)
         return o == d ? 1 : 0;
@@ -689,7 +702,11 @@ function on_node_hover(d) {
 }
 
 function on_node_out(d) {
-  svg_link.style("opacity", 1);
+  svg_link
+    .transition()
+    .duration(300)
+    .style("opacity", 1);
+
   svg_text.style("opacity", function(o) {
     if(o.size === undefined)
       return 0;
