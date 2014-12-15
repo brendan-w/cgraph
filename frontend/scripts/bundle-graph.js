@@ -263,6 +263,7 @@ function init() {
   svg_text = svg_text_g.selectAll("text").data(force.nodes());
   svg_text.exit().remove();
   svg_text.enter().append("text")
+      .style("mouse-events", "none")
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
@@ -673,10 +674,27 @@ function on_node_hover(d) {
       return connected_link(d, o) ? 1 : 0.15;
     })
     ;
+
+  svg_text
+    .transition()
+    .duration(300)
+    .style("opacity", function(o) {
+      if(o.size === undefined)
+        return o == d ? 1 : 0;
+      else
+        return 1;
+    })
+    ;
 }
 
 function on_node_out(d) {
   svg_link.style("opacity", 1);
+  svg_text.style("opacity", function(o) {
+    if(o.size === undefined)
+      return 0;
+    else
+      return 1;
+  });
 }
 
 function connected_link(a, b) {
