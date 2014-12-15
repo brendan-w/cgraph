@@ -248,7 +248,7 @@ function init() {
 
   //console.log(force.nodes());
   svg_text = svg_text_g.selectAll("text")
-    .data(_.filter(force.nodes(), function(n) { return n.size;} ));
+    .data(force.nodes());
   svg_text.exit().remove();
   svg_text.enter().append("text")
       .attr("x", function(d) { return d.x; })
@@ -258,17 +258,18 @@ function init() {
           var filepath = data.groups[d.group].split("/");
           return filepath[filepath.length-1];
         }
-      });
-
-  svg_text = svg_text_g.selectAll("text").data(force.nodes());
-  svg_text.exit().remove();
-  svg_text.enter().append("text")
-      .style("mouse-events", "none")
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
-      .text(function(d) {
-        if (!d.size) return d.name;
-      });
+        else
+        {
+          return d.name;
+        }
+      })
+      .style("opacity", function(d) {
+        if(d.size)
+          return 1;
+        else
+          return 0;
+      })
+      ;
 }
 
 function tick(e) {
