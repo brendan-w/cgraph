@@ -243,23 +243,26 @@ function init() {
 
   svg_node.call(force.drag);
 
-
   force.on("tick", tick);
 
   //console.log(force.nodes());
   svg_text = svg_text_g.selectAll("text")
-    .data(force.nodes());
+    .data(net.nodes, get_node_id);
+    //.data(force.nodes());
   svg_text.exit().remove();
   svg_text.enter().append("text")
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
+        console.log(d.size, d.name, d);
         if (d.size) {
+          //console.log(d.group);
           var filepath = data.groups[d.group].split("/");
           return filepath[filepath.length-1];
         }
         else
         {
+          //console.log(d.name);
           return d.name;
         }
       })
