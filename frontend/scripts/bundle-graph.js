@@ -259,6 +259,15 @@ function init() {
           return filepath[filepath.length-1];
         }
       });
+
+  svg_text = svg_text_g.selectAll("text").data(force.nodes());
+  svg_text.exit().remove();
+  svg_text.enter().append("text")
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { return d.y; })
+      .text(function(d) {
+        if (!d.size) return d.name;
+      });
 }
 
 function tick(e) {
