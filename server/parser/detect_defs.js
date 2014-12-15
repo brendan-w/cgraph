@@ -70,8 +70,12 @@ module.exports = function(statements) {
 					{
 						//find matching bracket (brackets are their own statements in this parser)
 						var endToken = matchBracket(statements, s);
-						var f = new Func(token, storage, endToken);
-						definitions.push(f);
+						//in case no end bracket was found
+						if(endToken !== undefined)
+						{
+							var f = new Func(token, storage, endToken);
+							definitions.push(f);
+						}
 					}
 				}
 			}
