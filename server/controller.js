@@ -37,20 +37,24 @@ module.exports.getRepo = function(req, res) {
 		return sendError(res, "Both fields are required");
 	}
 
-	if(user === "torvalds" && repo === "linux")
-	{
-		return sendError(res, "I'm sorry, Dave. I'm afraid I can't do that.<br>(repo too large)");
-	}
-
-	repo_util.getRepo(user, repo, function(err) {
+	repo_util.validRepo(user, repo, function(err) {
 		if(err)
 		{
-			console.log(err);
-			return sendError(res, "Not a valid github repository");
+			return sendError(res, err);
 		}
 		else
 		{
-			return sendSuccess(res, "/select?user=" + user + "&repo=" + repo);
+			repo_util.getRepo(user, repo, function(err) {
+				if(err)
+				{
+					console.log(err);
+					return sendError(res, "Failed to read repository");
+				}
+				else
+				{
+					return sendSuccess(res, "/select?user=" + user + "&repo=" + repo);
+				}
+			});
 		}
 	});
 };

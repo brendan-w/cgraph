@@ -1,13 +1,50 @@
 
 
-var fs     = require('fs');
-var url    = require('url');
-var git    = require('gift');
-var path   = require('path');
-var async  = require('async');
-var mkdirp = require('mkdirp');
-var util   = require('./util.js');
-var config = require('./config.js');
+var fs        = require('fs');
+var url       = require('url');
+var git       = require('gift');
+var path      = require('path');
+var async     = require('async');
+var mkdirp    = require('mkdirp');
+var GitHubApi = require('github');
+var util      = require('./util.js');
+var config    = require('./config.js');
+
+
+
+
+
+
+module.exports.validRepo = function(user, repo, callback) {
+	var github = new GitHubApi({ version: "3.0.0" });
+	github.authenticate(config.github_auth);
+
+	var query = {
+		user: user,
+		repo: repo,
+	};
+
+	github.repos.get(query, function(err, repo_data) {
+		if(err)
+		{
+			console.log(err);
+			return callback("Not a valid github repository");
+		}
+		else
+		{
+			if(repo_data.size > config.max_repo_size)
+			{
+				callback("Only repos under " + (config.max_repo_size / 1024) + "MB are supported");
+			}
+			else
+			{
+				callback(null); //valid
+			}
+		}
+	});
+};
+
+
 
 
 

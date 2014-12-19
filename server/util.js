@@ -2,8 +2,6 @@
 var path = require('path');
 
 
-
-
 module.exports.securePath = function(dirty_path, root_dir)
 {
 	//null bytes
@@ -24,5 +22,3 @@ module.exports.securePath = function(dirty_path, root_dir)
 
 	return true;
 }
-
-
