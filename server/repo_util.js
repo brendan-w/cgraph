@@ -13,8 +13,7 @@ var config    = require('./config.js');
 
 
 
-
-
+//use the GitHub API to check the validity and size of the repo
 module.exports.validRepo = function(user, repo, callback) {
 	var github = new GitHubApi({ version: "3.0.0" });
 	github.authenticate(config.github_auth);
@@ -34,7 +33,8 @@ module.exports.validRepo = function(user, repo, callback) {
 		{
 			if(repo_data.size > config.max_repo_size)
 			{
-				callback("Only repos under " + (config.max_repo_size / 1024) + "MB are supported");
+				var mb = util.printFloat(config.max_repo_size / 1024, 1);
+				callback("Only repos under " + mb + "MB are supported");
 			}
 			else
 			{
@@ -43,8 +43,6 @@ module.exports.validRepo = function(user, repo, callback) {
 		}
 	});
 };
-
-
 
 
 
