@@ -252,7 +252,6 @@ function init() {
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
-        console.log(d.size, d.name, d);
         if (d.size) {
           var filepath = data.groups[d.group].split("/");
           return filepath[filepath.length-1];

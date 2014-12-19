@@ -37,11 +37,19 @@ function goto_code(filename, line)
 	if(file_name.innerHTML !== filename)
 	{
 		var url = "/file?user=" + user + "&repo=" + repo + "&filename=" + filename;
-		reqwest(url, function(body) {
-			code_viewer.innerHTML = escapeHTML(body);
-			Prism.highlightElement(code_viewer);
-			goto_line(line);
-			file_name.innerHTML = filename;
+		reqwest({
+			url:url,
+			method:"GET",
+			success: function(body) {
+				code_viewer.innerHTML = escapeHTML(body);
+				Prism.highlightElement(code_viewer);
+				goto_line(line);
+				file_name.innerHTML = filename;
+			},
+			error: function(err) {
+				code_viewer.innerHTML = "Failed to retrieve file. Please try restarting C-Graph.";
+				Prism.highlightElement(code_viewer);
+			}
 		});
 	}
 	else

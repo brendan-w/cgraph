@@ -95,10 +95,17 @@ module.exports.cgraphPage = function(req, res) {
 		{
 			//parse the C files into a call graph
 			parse(files, function(err, data) {
+
+				var json_data = "";
+				if(config.human_readable)
+					json_data = JSON.stringify(data, function(k, v){return v;}, 4);
+				else
+					json_data = JSON.stringify(data);
+
 				res.render('cgraph', {
 					user:      user,
 					repo:      repo,
-					data:      JSON.stringify(data, function(k, v){return v;}, 4),
+					data:      json_data,
 					num_files: data.groups.length,
 					num_funcs: data.nodes.length,
 					num_calls: data.links.length,
@@ -110,14 +117,7 @@ module.exports.cgraphPage = function(req, res) {
 
 //bouncing these off the server to avoid some cross domain errors when developing locally
 module.exports.getFile = function(req, res) {
-
-	var file_path = path.join(req.tmp_path, req.query.filename);
-
-	//the middleware takes care of the user/repo, but not the filename, so we have to check again...
-	if(!util.securePath(file_path, config.tmp_dir))
-		return sendError(res, 'Please specifiy valid path');
-
-	fs.readFile(file_path, function(err, data) {
+	fs.readFile(req.file_path, function(err, data) {
 		if(err)
 		{
 			console.log(err);

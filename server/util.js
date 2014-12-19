@@ -37,7 +37,7 @@ module.exports.securePath = securePath;
 function updateRepo(tmp_path, callback)
 {
 	var repo = git(tmp_path);
-	repo.git("pull", {}, ["origin", "master"], function(err) {
+	repo.git("pull", {}, ["origin"], function(err) {
 		if(err)
 		{
 			console.log(err);
