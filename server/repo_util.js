@@ -115,48 +115,26 @@ module.exports.getRepo = function(user, repo, callback) {
 
 //call with (root, callback)
 //current_dir is internal use only
-function listC(root, done, current_dir)
-{
+module.exports.listC = function(tmp_path, callback) {
 	var results = [];
+	var walker = fs.walk(tmp_path);
 
-	current_dir = current_dir ? current_dir : root;
+	walker.on("file", function(root, stat, next) {
+		var file_path = path.relative(tmp_path, path.join(root, stat.name));
+		
+		if(file_path.split(path.sep)[0] === ".git")
+			return next();
 
-	fs.readdir(current_dir, function(err, list) {
-		if(err) return done(err);
-		var pending = list.length;
-		if(!pending) return done(null, results);
-		list.forEach(function(file) {
-
-			if(file !== '.git') //exclude all .git directories
-			{
-				file = current_dir + '/' + file;
-				fs.stat(file, function(err, stat) {
-					if(stat && stat.isDirectory()) {
-						//dir, recurse
-						listC(root, function(err, res) {
-							results = results.concat(res);
-							if (!--pending) done(null, results);
-						}, file);
-					} else {
-						//file
-						if(path.extname(file).toLowerCase() === '.c')
-						{
-							//could have used path.relative, but this is faster (to make the path relative to the repo)
-							results.push(file.substr(root.length + 1));
-						}
-						if (!--pending) done(null, results);
-					}
-				});
-			}
-			else
-			{
-				if (!--pending) done(null, results);
-			}
-
-		});
+		if(path.extname(file_path) === ".c")
+			results.push(file_path);
+			
+		return next();
 	});
-}
-module.exports.listC = listC;
+
+	walker.on("end", function() {
+		callback(null, results);
+	});
+};
 
 
 
