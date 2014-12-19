@@ -38,7 +38,7 @@ module.exports.getRepo = function(req, res) {
 
 	if(user === "torvalds" && repo === "linux")
 	{
-		return sendError(res, "I'm sorry, Dave. I'm afraid I can't do that.");
+		return sendError(res, "I'm sorry, Dave. I'm afraid I can't do that.<br>(repo too large)");
 	}
 
 	util.getRepo(user, repo, function(err) {
