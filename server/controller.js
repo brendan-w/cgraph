@@ -1,9 +1,10 @@
 
-var fs      = require('fs');
-var path    = require('path');
-var util    = require('./util.js');
-var config  = require('./config.js');
-var parse   = require('./parser');
+var fs        = require('fs');
+var path      = require('path');
+var util      = require('./util.js');
+var config    = require('./config.js');
+var parse     = require('./parser');
+var repo_util = require('./repo_util.js');
 
 
 function sendError(res, message)
@@ -41,7 +42,7 @@ module.exports.getRepo = function(req, res) {
 		return sendError(res, "I'm sorry, Dave. I'm afraid I can't do that.<br>(repo too large)");
 	}
 
-	util.getRepo(user, repo, function(err) {
+	repo_util.getRepo(user, repo, function(err) {
 		if(err)
 		{
 			console.log(err);
@@ -58,7 +59,7 @@ module.exports.selectPage = function(req, res) {
 	var user = req.query.user;
 	var repo = req.query.repo;
 
-	util.listC(req.tmp_path, function(err, files) {
+	repo_util.listC(req.tmp_path, function(err, files) {
 		if(err)
 		{
 			console.log(err);
@@ -85,7 +86,7 @@ module.exports.cgraphPage = function(req, res) {
 	}
 
 	//load the C files
-	util.loadC(req.tmp_path, filenames, function(err, files) {
+	repo_util.loadC(req.tmp_path, filenames, function(err, files) {
 		if(err)
 		{
 			console.log(err);
