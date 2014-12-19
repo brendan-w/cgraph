@@ -1,11 +1,10 @@
 
 
-var fs        = require('fs');
+var fs        = require('fs.extra');
 var url       = require('url');
 var git       = require('gift');
 var path      = require('path');
 var async     = require('async');
-var mkdirp    = require('mkdirp');
 var GitHubApi = require('github');
 var util      = require('./util.js');
 var config    = require('./config.js');
@@ -66,7 +65,7 @@ function updateRepo(tmp_path, callback)
 //new repo, must be cloned down
 function newRepo(tmp_path, git_url, callback)
 {
-	mkdirp(tmp_path, function(err) {
+	fs.mkdirp(tmp_path, function(err) {
 		if(err)
 		{
 			return callback('Failed to make tmp directory. Invalid path?');

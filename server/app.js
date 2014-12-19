@@ -1,8 +1,13 @@
 
+var fs          = require('fs.extra');
 var express     = require('express');
 var body_parser = require('body-parser');
 var route       = require('./router.js');
 var config      = require('./config.js');
+
+
+//wipe the tmp directory
+fs.rmrfSync(config.tmp_dir);
 
 
 //setup
@@ -16,6 +21,7 @@ app.use(body_parser.urlencoded({
 
 
 route(app);
+
 
 console.log("============= Starting with settings =============");
 console.log(config);
