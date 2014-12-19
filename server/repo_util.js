@@ -44,7 +44,6 @@ module.exports.validRepo = function(user, repo, callback) {
 };
 
 
-
 //repo already exists on filesystem, run a `git pull origin master`
 function updateRepo(tmp_path, callback)
 {
@@ -110,16 +109,13 @@ module.exports.getRepo = function(user, repo, callback) {
 
 
 
-//thanks stackoverflow, for implementing what should be in the fs lib
-//http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
-
-//call with (root, callback)
-//current_dir is internal use only
+//lists all of the C files in the given tmp repo
 module.exports.listC = function(tmp_path, callback) {
 	var results = [];
 	var walker = fs.walk(tmp_path);
 
 	walker.on("file", function(root, stat, next) {
+		//get the path relative to the root of the project
 		var file_path = path.relative(tmp_path, path.join(root, stat.name));
 		
 		if(file_path.split(path.sep)[0] === ".git")
