@@ -15,4 +15,5 @@ module.exports = function(app) {
 	app.get ("/select", m.hasUserRepo, c.selectPage);
 	app.get ("/cgraph", m.hasUserRepo, c.cgraphPage);
 	app.get ("/file",   m.hasFile,     c.getFile);
+	app.get ("/status",                c.statusPage);
 };

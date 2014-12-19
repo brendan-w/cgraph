@@ -134,3 +134,27 @@ module.exports.getFile = function(req, res) {
 		}
 	});
 };
+
+
+module.exports.statusPage = function(req, res) {
+	//get listing of repos
+
+	var all_repos = [];
+
+	var users = fs.readdirSync(config.tmp_dir);
+	for(var u = 0; u < users.length; u++)
+	{
+		var repos = fs.readdirSync(path.join(config.tmp_dir, users[u]));
+		for(var r = 0; r < repos.length; r++)
+		{
+			all_repos.push({
+				user: users[u],
+				repo: repos[r],
+			});
+		}
+	}
+
+	res.render('status', {
+		repos: all_repos,
+	});
+};

@@ -8,6 +8,7 @@ var config      = require('./config.js');
 
 //wipe the tmp directory
 fs.rmrfSync(config.tmp_dir);
+fs.mkdir(config.tmp_dir);
 
 
 //setup

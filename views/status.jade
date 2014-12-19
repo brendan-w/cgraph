@@ -1,0 +1,18 @@
+extends ./base.jade
+
+block head
+  link(rel='stylesheet', type='text/css', href='/static/css/status.css')
+
+
+block body
+  #repos
+    h1 Repos
+    ul
+      li.header
+        span.user User
+        span.repo Repo
+
+      each repo in repos
+        li
+          span.user #{repo.user}
+          span.repo #{repo.repo}
