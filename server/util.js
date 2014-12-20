@@ -2,8 +2,7 @@
 var path = require('path');
 
 
-module.exports.securePath = function(dirty_path, root_dir)
-{
+module.exports.securePath = function(dirty_path, root_dir) {
 	//null bytes
 	if(dirty_path.indexOf('\0') !== -1)
 		return false;
@@ -21,9 +20,9 @@ module.exports.securePath = function(dirty_path, root_dir)
 	}
 
 	return true;
-}
+};
 
 module.exports.printFloat = function(num, decimals) {
 	var pow = Math.pow(10, decimals);
 	return parseFloat(Math.round(num * pow) / pow).toFixed(decimals);
-}
+};

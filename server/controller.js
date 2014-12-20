@@ -1,10 +1,11 @@
 
-var fs        = require('fs.extra');
-var path      = require('path');
-var util      = require('./util.js');
-var config    = require('./config.js');
-var parse     = require('./parser');
-var repo_util = require('./repo_util.js');
+var fs         = require('fs.extra');
+var path       = require('path');
+var util       = require('./util.js');
+var config     = require('./config.js');
+var parse      = require('./parser');
+var repo_util  = require('./repo_util.js');
+var fs_limiter = require('./fs_limiter.js');
 
 
 function sendError(res, message)
@@ -77,20 +78,9 @@ module.exports.selectPage = function(req, res) {
 };
 
 module.exports.cgraphPage = function(req, res) {
-	var user = req.query.user;
-	var repo = req.query.repo;
-
-	//get the filenames from the query string
-	var filenames = [];
-	for(var key in req.query)
-	{
-		//all other keys should be filenames
-		if(['user', 'repo'].indexOf(key) === -1)
-			filenames.push(key);
-	}
 
 	//load the C files
-	repo_util.loadC(req.tmp_path, filenames, function(err, files) {
+	repo_util.loadC(req.graph_file_paths, req.graph_file_names, function(err, files) {
 		if(err)
 		{
 			console.log(err);
@@ -108,8 +98,8 @@ module.exports.cgraphPage = function(req, res) {
 					json_data = JSON.stringify(data);
 
 				res.render('cgraph', {
-					user:      user,
-					repo:      repo,
+					user:      req.query.user,
+					repo:      req.query.repo,
 					data:      json_data,
 					num_files: data.groups.length,
 					num_funcs: data.nodes.length,

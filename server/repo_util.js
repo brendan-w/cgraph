@@ -146,19 +146,7 @@ module.exports.listC = function(tmp_path, callback) {
 		...
 	]
 */
-module.exports.loadC = function(tmp_path, filenames, callback) {
-
-	//create paths to each raw file
-	var file_paths = [];
-	for(var i = 0; i < filenames.length; i++)
-	{
-		var file = path.join(tmp_path, filenames[i]);
-
-		if(!util.securePath(file, config.tmp_dir))
-			return callback("Insecure or invalid file path");
-		else
-			file_paths.push(file)
-	}
+module.exports.loadC = function(file_paths, file_names, callback) {
 
 	//download the files into memory
 	async.map(file_paths, fs.readFile, function(err, data) {
@@ -174,7 +162,7 @@ module.exports.loadC = function(tmp_path, filenames, callback) {
 			for(var i = 0; i < data.length; i++)
 			{
 				output_files.push({
-					filename: filenames[i],
+					filename: file_names[i],
 					content: data[i].toString('utf8'),
 				});
 			}
