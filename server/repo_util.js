@@ -30,14 +30,22 @@ module.exports.validRepo = function(user, repo, callback) {
 		}
 		else
 		{
-			if(repo_data.size > config.max_repo_size)
+			if(repo_data.size)
 			{
-				var mb = util.printFloat(config.max_repo_size / 1024, 1);
-				callback("Only repos under " + mb + "MB are supported");
+				if(repo_data.size > config.max_repo_size)
+				{
+					var mb = util.printFloat(config.max_repo_size / 1024, 1);
+					callback("Only repos under " + mb + "MB are supported");
+				}
+				else
+				{
+					callback(null); //valid
+				}
 			}
 			else
 			{
-				callback(null); //valid
+				console.log("no size given by GitHub (probably surpassed 5000 requests/hour)")
+				callback("GitHub API error, try again in a little while");
 			}
 		}
 	});
