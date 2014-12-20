@@ -1,8 +1,8 @@
 
-var fs      = require('fs.extra');
-var path    = require('path');
-var util    = require('./util.js');
-var config  = require('./config.js');
+var fs         = require('fs.extra');
+var path       = require('path');
+var util       = require('./util.js');
+var config     = require('./config.js');
 
 
 
@@ -48,6 +48,7 @@ module.exports.hasFiles = function(req, res, next) {
 	//get the filenames from the query string
 	req.graph_file_names = [];
 	req.graph_file_paths = [];
+
 	for(var key in req.query)
 	{
 		//all other keys should be filenames

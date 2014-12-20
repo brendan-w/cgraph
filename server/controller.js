@@ -8,6 +8,7 @@ var repo_util  = require('./repo_util.js');
 var fs_limiter = require('./fs_limiter.js');
 
 
+
 function sendError(res, message)
 {
 	return res.json({
@@ -53,6 +54,7 @@ module.exports.getRepo = function(req, res) {
 				}
 				else
 				{
+					fs_limiter.access(user, repo);
 					return sendSuccess(res, "/select?user=" + user + "&repo=" + repo);
 				}
 			});
@@ -79,6 +81,9 @@ module.exports.selectPage = function(req, res) {
 
 module.exports.cgraphPage = function(req, res) {
 
+	var user = req.query.user;
+	var repo = req.query.repo;
+
 	//load the C files
 	repo_util.loadC(req.graph_file_paths, req.graph_file_names, function(err, files) {
 		if(err)
@@ -91,6 +96,8 @@ module.exports.cgraphPage = function(req, res) {
 			//parse the C files into a call graph
 			parse(files, function(err, data) {
 
+				fs_limiter.access(user, repo);
+
 				var json_data = "";
 				if(config.human_readable)
 					json_data = JSON.stringify(data, function(k, v){return v;}, 4);
@@ -98,8 +105,8 @@ module.exports.cgraphPage = function(req, res) {
 					json_data = JSON.stringify(data);
 
 				res.render('cgraph', {
-					user:      req.query.user,
-					repo:      req.query.repo,
+					user:      user,
+					repo:      repo,
 					data:      json_data,
 					num_files: data.groups.length,
 					num_funcs: data.nodes.length,

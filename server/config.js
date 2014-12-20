@@ -7,7 +7,7 @@ module.exports = {
 	views_dir:      path.resolve(path.join(__dirname, "../views/")),
 	human_readable: false,
 	max_repo_size:  10 * 1024, //kB
-	max_repo_count: 25,
+	max_repos:      25,
 
 	//github gives better rate limiting if your authenticated
 	github_auth: {
