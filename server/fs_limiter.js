@@ -34,3 +34,8 @@ module.exports.access = function(user, repo) {
 		deleteOldest();
 	}
 };
+
+module.exports.getTime = function(user, repo) {
+	var key = path.join(user, repo);
+	return manifest[key];
+};

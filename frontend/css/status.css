@@ -20,5 +20,6 @@ h1
 }
 
 li > * { display:inline-block; }
-.user { width:12em; }
-.repo { width:12em; }
+.user   { width:12em; }
+.repo   { width:12em; }
+.access { width:24em; }

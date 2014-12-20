@@ -11,8 +11,14 @@ block body
       li.header
         span.user User
         span.repo Repo
+        span.access Last Access
 
-      each repo in repos
+      if repos.length > 0
+        each repo in repos
+          li
+            span.user #{repo.user}
+            span.repo #{repo.repo}
+            span.access #{repo.access}
+      else
         li
-          span.user #{repo.user}
-          span.repo #{repo.repo}
+          span.user No Repos

@@ -147,9 +147,14 @@ module.exports.statusPage = function(req, res) {
 			all_repos.push({
 				user: users[u],
 				repo: repos[r],
+				access: fs_limiter.getTime(users[u], repos[r]),
 			});
 		}
 	}
+
+	all_repos.sort(function(a, b) {
+		return b.access - a.access;
+	});
 
 	res.render('status', {
 		repos: all_repos,
