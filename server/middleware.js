@@ -28,12 +28,14 @@ module.exports.hasUserRepo = function(req, res, next) {
 
 //checks for valid 'user', 'repo' and 'filename' values in the query string
 module.exports.hasFile = function(req, res, next) {
+	var user = req.query.user;
+	var repo = req.query.repo;
 	var filename = req.query.filename;
 
-	if(!filename)
+	if(!user || !repo || !filename)
 		return res.status(404).send("File not found");
 
-	var file_path = path.join(req.tmp_path, filename);
+	var file_path = path.join(config.tmp_dir, user, repo, filename);
 	if(!util.securePath(file_path, req.tmp_path))
 		return res.status(404).send("File not found");
 
@@ -43,6 +45,7 @@ module.exports.hasFile = function(req, res, next) {
 	req.file_path = file_path;
 	return next();
 };
+
 
 module.exports.hasFiles = function(req, res, next) {
 	//get the filenames from the query string
