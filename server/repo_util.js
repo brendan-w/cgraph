@@ -30,7 +30,7 @@ module.exports.validRepo = function(user, repo, callback) {
 		}
 		else
 		{
-			if(repo_data.size)
+			if(repo_data.size !== undefined) //size is allowed to be zero
 			{
 				if(repo_data.size > config.max_repo_size)
 				{
