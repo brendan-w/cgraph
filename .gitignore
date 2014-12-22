@@ -1,6 +1,5 @@
-# ignore Graph-Object files
-*.go
-#
+
+
 # C ignores
 
 # Object files

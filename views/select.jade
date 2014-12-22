@@ -12,6 +12,7 @@ block body
         input(type="hidden", name="repo", value="#{repo}")
         
         h4 #{user}/#{repo}
+        div.dim Please select the files you wish to include in the graph
 
         if files.length <= 0
           .problem No C files found
