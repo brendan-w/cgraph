@@ -21,7 +21,14 @@ Clone this repo then:
 npm install
 ```
 
-To run on port 8000:
+Add Github credentials as environment variables (github gives better rate limiting if you're authenticated). For example if you are using bash or zsh add to ~/.bashrc or ~/.zshrc:
+
+```
+export GITHUB_USER='your_username'
+export GITHUB_PASS='your_password'
+```
+
+Then to run on port 8000:
 
 ```
 node server/app.js
