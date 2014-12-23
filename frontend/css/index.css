@@ -24,9 +24,13 @@ form > *:last-child
 	margin-bottom: 0px;
 }
 
-header
+header, section
 {
 	text-align: left;
+}
+
+section
+{
 	padding-bottom: 20px;
 	border-bottom:1px solid #ddd;
 }
@@ -42,6 +46,11 @@ header h1
 	font-weight: bold;
 }
 
+p
+{
+	/* this isn't the most beautiful of fixes, but it works for now */
+	width:30em;
+}
 
 
 form #url
