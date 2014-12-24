@@ -108,7 +108,8 @@ function init() {
       yquant = 1,
       xqthresh,
       yqthresh,
-      change_squared;
+      change_squared,
+      force_size;
 
   if (force) force.stop();
 
@@ -244,13 +245,15 @@ function init() {
   svg_node.call(force.drag);
 
   force.on("tick", tick);
+  force_size = force.size();
 
   svg_text = svg_text_g.selectAll("text")
     .data(net.nodes, get_node_id);
   svg_text.exit().remove();
   svg_text.enter().append("text")
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
+      //.attr("x", function(d) { return d.x; })
+      //.attr("y", function(d) { return d.y; })
+      //.attr("text-anchor", "end")
       .text(function(d) {
         if (d.size) {
           var filepath = data.groups[d.group].split("/");
@@ -262,13 +265,13 @@ function init() {
         }
       })
       .style("opacity", function(d) {
-        if(d.size)
-          return 1;
-        else
-          return 0;
+        if(d.size) return 1;
+        else       return 0;
       })
+      .each(function(d) { position_text(d, this, force_size); })
       ;
 }
+
 
 function tick(e) {
   //Force all nodes with only one link to point outwards.
@@ -280,7 +283,7 @@ function tick(e) {
 
   var center = {x: 0, y: 0, weight: 0},
       singles = [],
-      size,
+      force_size,
       c, k,
       mx, my,
       dx, dy,
@@ -297,10 +300,10 @@ function tick(e) {
       singles.push(n);
   });
 
-  size = force.size();
+  force_size = force.size();
 
-  mx = size[0] / 2;
-  my = size[1] / 2;
+  mx = force_size[0] / 2;
+  my = force_size[1] / 2;
 
   singles.forEach(function(n) {
     var k, x, y,
@@ -369,7 +372,7 @@ function tick(e) {
   // force.tick() would expect .px and .py to be the previous .x and .y
   net.nodes.forEach(function(node) {
 
-    restrict_node_to_window(node, size);
+    restrict_node_to_window(node, force_size);
 
     // fixes 'elusive' node behaviour when hovering with the mouse
     // (related to force.drag)
@@ -402,11 +405,7 @@ function tick(e) {
     ;
 
   svg_text
-    .attr("x", function(d) {
-      var r = node_scale(d.size) || min_node_radius;
-      return d.x + r + 5;
-    })
-    .attr("y", function(d) { return d.y; })
+    .each(function(d) { position_text(d, this, force_size); })
     ;
 }
 
@@ -415,6 +414,29 @@ function log(object) {
   // to inspect the state of a variable frozen at the time of the call
   // JSON.stringify serves this purpose
   console.log(JSON.stringify(object, null, "\t"));
+}
+
+function position_text(d, that, force_size) {
+  // Orient the node's text such that it doesn't go off screen
+  var force_window_width = force_size[1],
+      text_width = that.getBBox().width + off,
+      diff = force_window_width - text_width,
+      node_width = node_scale(d.size) || min_node_radius;
+
+  if (d.x < diff) {
+    d3.select(that)
+      .attr("x", function(d) { return d.x + (2 * node_width); })
+      .attr("y", function(d) { return d.y; })
+      .attr("text-anchor", "start")
+      ;
+  }
+  else {
+    d3.select(that)
+      .attr("x", function(d) { return d.x - (2 * node_width); })
+      .attr("y", function(d) { return d.y; })
+      .attr("text-anchor", "end")
+      ;
+  }
 }
 
 function restrict_node_to_window(node, size) {
