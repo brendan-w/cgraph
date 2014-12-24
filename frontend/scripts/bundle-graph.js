@@ -366,73 +366,48 @@ function tick(e) {
   change_squared = 0;
 
   // fixup .px/.py so drag behaviour and annealing get the correct values, as
-  // force.tick() would expect .px and .py to be the .x and .y of yesterday.
-  net.nodes.forEach(function(n) {
-    // restrain all nodes to window area
-    var k,
-        dx,
-        dy,
-        /* styled border outer thickness and a bit */
-        r = (n.size > 0 ? n.size + min_node_radius : min_node_radius + 1) + 2;
+  // force.tick() would expect .px and .py to be the previous .x and .y
+  net.nodes.forEach(function(node) {
 
-    dx = 0;
-    if (n.x < r)
-      dx = r - n.x;
-    else if (n.x > size[0] - r)
-      dx = size[0] - r - n.x;
+    restrict_node_to_window(node, size);
 
-    dy = 0;
-    if (n.y < r)
-      dy = r - n.y;
-    else if (n.y > size[1] - r)
-      dy = size[1] - r - n.y;
-
-    k = 1.2;
-
-    n.x += dx * k;
-    n.y += dy * k;
-    // restraining completed
-
-    // fixes 'elusive' node behaviour when hovering with the mouse (related
-    // to force.drag)
-    if (n.fixed) {
-      // 'elusive behaviour' ~ move mouse near node and node would take off,
-      // i.e. act as an elusive creature.
-      n.x = n.px;
-      n.y = n.py;
+    // fixes 'elusive' node behaviour when hovering with the mouse
+    // (related to force.drag)
+    if (node.fixed) {
+      node.x = node.px;
+      node.y = node.py;
     }
-    n.px = n.x;
-    n.py = n.y;
+    node.px = node.x;
+    node.py = node.y;
 
     // plus copy for faster stop check
-    change_squared += (n.qx - n.x) * (n.qx - n.x);
-    change_squared += (n.qy - n.y) * (n.qy - n.y);
-    n.qx = n.x;
-    n.qy = n.y;
+    change_squared += Math.pow((node.qx - node.x), 2);
+    change_squared += Math.pow((node.qy - node.y), 2);
+    node.qx = node.x;
+    node.qy = node.y;
   });
 
   if (!svg_hull.empty()) {
-    svg_hull.data(convexHulls(net.nodes, off))
-        .attr("d", drawCluster);
+    svg_hull
+      .data(convexHulls(net.nodes, off))
+      .attr("d", drawCluster);
   }
 
-  svg_link.attr("d", link_arc);
+  svg_link
+    .attr("d", link_arc);
 
-  svg_node.attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; })
-          ;
+  svg_node
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    ;
 
-  svg_text.attr("x", function(d) {
-            var r = node_scale(d.size) || min_node_radius;
-            return d.x + r + 5;
-          })
-          .attr("y", function(d) { return d.y; })
-          //.attr("opacity", function(d) {
-            //// Only show file nodes by default
-            //if (!d.size) return 0;
-            //else return 1;
-          //})
-          ;
+  svg_text
+    .attr("x", function(d) {
+      var r = node_scale(d.size) || min_node_radius;
+      return d.x + r + 5;
+    })
+    .attr("y", function(d) { return d.y; })
+    ;
 }
 
 function log(object) {
@@ -440,6 +415,35 @@ function log(object) {
   // to inspect the state of a variable frozen at the time of the call
   // JSON.stringify serves this purpose
   console.log(JSON.stringify(object, null, "\t"));
+}
+
+function restrict_node_to_window(node, size) {
+  var k = 1.5,
+      dx, dy,
+      radius;
+
+  // restrain all nodes to window area
+  if (node.size > 0) {
+    radius = node.size + min_node_radius + 2;
+  }
+  else {
+    radius = min_node_radius + 3;
+  }
+
+  dx = 0;
+  if (node.x < radius)
+    dx = radius - node.x;
+  else if (node.x > size[0] - radius)
+    dx = size[0] - radius - node.x;
+
+  dy = 0;
+  if (node.y < radius)
+    dy = radius - node.y;
+  else if (node.y > size[1] - radius)
+    dy = size[1] - radius - node.y;
+
+  node.x += dx * k;
+  node.y += dy * k;
 }
 
 function get_node_id(node) {
@@ -502,7 +506,6 @@ function network(data) {
       links     = build_links(link_map);
 
   //checkNetworkState();
-  //console.log({ nodes: nodes, links: links });
   return { nodes: nodes, links: links };
 }
 
@@ -662,7 +665,6 @@ function on_node_dblclick(d) {
   svg_text
     .transition()
     .duration(300)
-    //.style("opacity", 1)
     .style("opacity", function(o) {
       if(o.size === undefined)
         return o == d ? 1 : 0;
@@ -673,11 +675,6 @@ function on_node_dblclick(d) {
 }
 
 function on_node_hover(d) {
-  //console.log(d);
-  //var connected_links = _.filter(links, function(n) {
-    //return n.key.split("|")[0] === get_node_id(d);
-  //});
-
   svg_link
     .transition()
     .duration(300)
@@ -689,7 +686,6 @@ function on_node_hover(d) {
   svg_text
     .transition()
     .duration(300)
-    //.style("opacity", 1)
     .style("opacity", function(o) {
       if(o.size === undefined)
         return o == d ? 1 : 0;
@@ -759,7 +755,7 @@ function from_polar(start, polar) {
 }
 
 function neighboring(a, b) {
-// could be faster via lookup table...
+  // could be faster via lookup table...
   return data.links.some(function(d) {
     return (d.source === a && d.target === b) ||
            (d.source === b && d.target === a);
