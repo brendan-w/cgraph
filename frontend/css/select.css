@@ -22,6 +22,12 @@ form > *:last-child
 	margin-bottom: 0px;
 }
 
+header
+{
+	text-align: left;
+	padding-bottom: 20px;
+	border-bottom:1px solid #ddd;
+}
 
 
 

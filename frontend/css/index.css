@@ -3,8 +3,9 @@
  *	Landing page
  */
 
-body {
-  background: #f5f2f0;
+body
+{
+	background: #f5f2f0;
 }
 
 form
@@ -24,32 +25,23 @@ form > *:last-child
 	margin-bottom: 0px;
 }
 
-header, section
+header
 {
 	text-align: left;
-}
-
-section
-{
 	padding-bottom: 20px;
 	border-bottom:1px solid #ddd;
-}
-
-header > *
-{
-	display: inline-block;
-	margin-right: 10px;
 }
 
 header h1
 {
 	font-weight: bold;
+	margin-bottom: 20px;
 }
 
-p
+header p
 {
 	/* this isn't the most beautiful of fixes, but it works for now */
-	width:30em;
+	width:35em;
 }
 
 
