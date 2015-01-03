@@ -1,6 +1,16 @@
 
 var path = require('path');
 
+
+if(!process.env.GITHUB_USER || !process.env.GITHUB_PASS)
+{
+	console.log("Please set the following environment variables:");
+	console.log("\tGITHUB_USER='your_username'");
+	console.log("\tGITHUB_PASS='your_password'");
+	process.exit(1);
+}
+
+
 module.exports = {
 	http_port:      process.env.PORT || 8000,
 	tmp_dir:        path.resolve(path.join(__dirname, "../tmp/")),
