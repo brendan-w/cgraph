@@ -34,7 +34,7 @@ module.exports.validRepo = function(user, repo, callback) {
 			{
 				if(repo_data.size > config.max_repo_size)
 				{
-					var mb = util.printFloat(config.max_repo_size / 1024, 1);
+					var mb = util.printFloat(config.max_repo_size / 1000, 1);
 					callback("Only repos under " + mb + "MB are supported");
 				}
 				else

@@ -43,7 +43,7 @@ module.exports.getRepo = function(req, res) {
 		if(err)
 		{
 			console.log(err);
-			return sendError(res, "Not a valid github repository");
+			return sendError(res, err);
 		}
 		else
 		{
