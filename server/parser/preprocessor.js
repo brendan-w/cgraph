@@ -1,7 +1,7 @@
 
 /*
 	Warning: Any alterations to the source MUST MAINTAIN LINE NUMBERS
-	so that they can be referened after parsing
+	so that they can be referenced after parsing
 */
 
 function matchAll(re, str)
@@ -16,13 +16,13 @@ function matchAll(re, str)
 		matches.push(m);
 	}
 
-	return matches
+	return matches;
 }
 
 //converts all characters except for newlines to spaces (preserves line spacing)
 function stripAll(str)
 {
-	var output = ""
+	var output = "";
 	for(var i = 0; i < str.length; i++)
 	{
 		if(str.charAt(i) === '\n')

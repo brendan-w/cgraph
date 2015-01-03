@@ -102,7 +102,7 @@ module.exports = function(maps) {
 		{
 			var func = maps[m].functions[f];
 
-			var calls = {} //key = target, value = number of occurences
+			var calls = {}; //key = target, value = number of occurences
 
 			for(var c = 0; c < func.calls.length; c++)
 			{

@@ -44,7 +44,7 @@ module.exports.validRepo = function(user, repo, callback) {
 			}
 			else
 			{
-				console.log("no size given by GitHub (probably surpassed 5000 requests/hour)")
+				console.log("no size given by GitHub (probably surpassed 5000 requests/hour)");
 				callback("GitHub API error, try again in a little while");
 			}
 		}

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node ./server/app.js",
-    "pretest": "jshint ./parser",
+    "pretest": "jshint ./server",
     "test": "echo \"Test Complete\""
   },
   "repository": {

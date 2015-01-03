@@ -25,6 +25,8 @@
 var async     = require('async');
 var parseFile = require('./parseFile.js');
 var link      = require('./linker.js');
+
+
 /*
 	Accepts list of objects like such:
 	[
@@ -43,12 +45,8 @@ module.exports = function(files, callback) {
 
 	//parse the C for each file, and produce individual call graphs
 	async.map(files, parseFile, function(err, results) {
-
 		//link each of the parsed files
 		var output = link(results);
-
-		//return JSON.stringify(output, function(k, v){return v;}, 4);
-		callback(false, output);
+		callback(null, output);
 	});
-
 };

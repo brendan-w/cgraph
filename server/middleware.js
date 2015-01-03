@@ -23,7 +23,7 @@ module.exports.hasUserRepo = function(req, res, next) {
 
 	req.tmp_path = tmp_path;
 	return next();
-}
+};
 
 
 //checks for valid 'user', 'repo' and 'filename' values in the query string
