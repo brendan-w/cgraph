@@ -96,6 +96,16 @@ header #file_name
 
 
 /*
+ * Prism Tweaks
+ */
+
+.token
+{
+  background:transparent !important;
+}
+
+
+/*
  * SVG Styles
  */
 
