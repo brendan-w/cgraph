@@ -149,7 +149,7 @@ module.exports.listC = function(tmp_path, callback) {
 	[
 		{
 			filename: "main.c",
-			content: "#include <iostream> ..."
+			content: "#include <stdio.h> ..."
 		},
 		...
 	]

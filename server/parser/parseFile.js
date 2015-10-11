@@ -52,7 +52,7 @@ var loadCalls    = require("./loadCalls.js");
 
 	{
 		filename: "main.c"
-		content: "#include <iostream> ..."
+		content: "#include <stdio.h> ..."
 	}
 */
 module.exports = function(file, callback) {

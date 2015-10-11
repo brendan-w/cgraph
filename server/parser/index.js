@@ -32,11 +32,11 @@ var link      = require('./linker.js');
 	[
 		{
 			filename: "main.c",
-			content: "#include <iostream> ..."
+			content: "#include <stdio.h> ..."
 		},
 		{
 			filename: "other.c",
-			content: "#include <iostream> ..."
+			content: "#include <stdio.h> ..."
 		},
 		...
 	]
